@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuvio Collections Image Suite</title>
+  
+  <style>
+    /* MASTER STUDIO LAYOUT */
+    body {
+      background-color: #ffffff; 
+      color: #1f1f1f;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .studio-dashboard {
+      background-color: #1f1f1f;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 25px;
+      width: 100%;
+      max-width: 720px;
+      margin-bottom: 25px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .suite-title {
+      color: #ffffff;
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 25px;
+      font-size: 22px;
+      letter-spacing: 1px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 20px;
+    }
+
+    .dashboard-section { margin-bottom: 20px; }
+    .dashboard-section h3 { margin-top: 0; color: #fff; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+    
+    .dashboard-row { display: flex; gap: 15px; margin-bottom: 15px; }
+    .input-group { flex: 1; display: flex; flex-direction: column; }
+    label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; color: #aaa; }
+    
+    input[type="text"], input[type="password"], select {
+      background-color: #111;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .button-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 12px 20px; font-size: 14px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: background 0.2s; color: white; width: 100%;}
+    
+    /* Standardized Action Buttons */
+    .btn-tmdb, .btn-card, .btn-logo { background-color: #7c3aed; }
+    .btn-tmdb:hover, .btn-card:hover, .btn-logo:hover { background-color: #6d28d9; }
+
+    /* Post-Production Workflow Buttons */
+    .btn-external { text-align: center; text-decoration: none; display: block; box-sizing: border-box; flex: 1; }
+    .btn-pixlr { background-color: #0891b2; } 
+    .btn-pixlr:hover { background-color: #0e7490; }
+    .btn-squoosh { background-color: #db2777; } 
+    .btn-squoosh:hover { background-color: #be185d; }
+
+    .global-divider {
+      border: 0;
+      border-top: 1px dashed #555;
+      margin: 30px 0 20px 0;
+      width: 100%;
+    }
+
+    /* GLOBAL TOAST NOTIFICATION SYSTEM */
+    #toast-notification {
+      position: fixed;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+      z-index: 10000;
+      transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+    #toast-notification.toast-error { top: 30px; background-color: #ef4444; }
+    #toast-notification.toast-warning { top: 30px; background-color: #f59e0b; }
+    #toast-notification.toast-success { top: 30px; background-color: #10b981; }
+
+    /* CANVAS WRAPPER */
+    .canvas-viewport-wrapper {
+      width: 100%;
+      position: relative;
+      overflow: hidden; 
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Hide wrapper completely on fresh load until a generator is clicked */
+    .mode-empty .canvas-viewport-wrapper {
+      display: none;
+    }
+
+    #nuvio-master-canvas {
+      position: relative; 
+      background-color: #ffffff; 
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transform-origin: top center; 
+    }
+
+    /* --- MODE TOGGLES --- */
+    .mode-hero #card-preview-container, .mode-hero #logo-preview-container { display: none; }
+    .mode-hero #hero-grid-container { display: block; width: 100%; height: 100%; position: absolute; }
+
+    .mode-card #nuvio-master-canvas { background-color: #0b0b0b; }
+    .mode-card #hero-grid-container, .mode-card #logo-preview-container { display: none; }
+    .mode-card #card-preview-container { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; position: relative;}
+
+    .mode-logo #nuvio-master-canvas { background-color: #000000; }
+    .mode-logo #hero-grid-container, .mode-logo #card-preview-container { display: none; }
+    .mode-logo #logo-preview-container { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; position: relative; }
+
+    /* --- HERO TMDB GRID STYLES --- */
+    .transform-group {
+      position: absolute;
+      top: -120%; 
+      left: -220%; 
+      width: 350%; 
+      height: 350%;
+      background-color: #0b0b0b; 
+      transform: perspective(1100px) rotateY(-22deg) rotateX(12deg) rotateZ(-4deg);
+      transform-origin: 85% center; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+    }
+
+    .poster-grid {
+      display: grid;
+      grid-template-columns: repeat(24, 1fr); 
+      gap: 0; 
+      width: 100%;
+      padding: 0; 
+      box-sizing: border-box;
+      opacity: 0.85; 
+      align-content: center;
+    }
+
+    .poster-item {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 0; 
+      border: none; 
+      background-color: #1a1a1a; 
+      box-sizing: border-box;
+      outline: 1px solid transparent; 
+      box-shadow: 0 0 1px rgba(0,0,0,0.1);
+      backface-visibility: hidden;
+      transform: translateZ(0);
+    }
+
+    /* --- FOLDER COVER STYLES --- */
+    .card-bg-image {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: right center; 
+      opacity: 0.85;
+      z-index: 1;
+    }
+    
+    .gradient-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 2;
+      background: linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(200,200,200,.5) 100%); 
+      mix-blend-mode: darken;
+    }
+
+    .card-title {
+      position: relative;
+      z-index: 3;
+      color: #ffffff;
+      margin: 0;
+      text-transform: uppercase;
+      font-family: 'Archivo-Raw', sans-serif !important; 
+      font-weight: 800;
+      font-style: italic;
+      display: block;
+      opacity: 0.85; 
+      font-size: 92px; letter-spacing: -3px;
+      text-shadow: 0px 12px 48px rgba(255, 255, 255, 0.6), 0px 0px 20px rgba(255, 255, 255, 0.3);
+      mix-blend-mode: plus-lighter;
+    }
+
+    /* --- TITLE LOGO STYLES --- */
+    .logo-title {
+      color: #ffffff;
+      margin: 0;
+      text-transform: uppercase;
+      font-family: 'Archivo-Raw', sans-serif !important; 
+      font-weight: 800;
+      font-style: italic;
+      font-size: 160px; 
+      letter-spacing: -5px;
+      line-height: 1;
+      position: relative;
+      z-index: 2;
+      /* THE OPTICAL CENTERING TRICK */
+      padding-right: 24px; 
+    }
+
+    .ghost-title {
+      position: absolute;
+      color: rgba(236, 72, 153, 0.6); /* Neon Pink Ghost */
+      z-index: 1;
+      pointer-events: none;
+      /* Ghost must match the optical adjustment perfectly */
+      padding-right: 24px; 
+    }
+  </style>
+</head>
+<body class="mode-empty">
+
+  <div id="toast-notification"></div>
+
+  <div class="studio-dashboard">
+    <h2 class="suite-title">🎨 Nuvio Collections Image Suite</h2>
+
+    <div class="dashboard-section">
+      <h3>1. Folder Cover Generator</h3>
+      <div class="dashboard-row">
+        <div class="input-group">
+          <label for="text-input">Cover Overlay Text</label>
+          <input type="text" id="text-input" value="New">
+        </div>
+        <div class="input-group">
+          <label for="card-url-select">Cover Background Source</label>
+          <select id="card-url-select">
+            <option value="" selected disabled>-- Select a Cover Background --</option>
+            <option value="https://cdn.jsdelivr.net/gh/cgio/tv-assets@main/unsplash-new.jpg">New</option>
+            <option value="https://cdn.jsdelivr.net/gh/cgio/tv-assets@main/unsplash-quality.jpg">Quality</option>
+            <option value="https://cdn.jsdelivr.net/gh/cgio/tv-assets@main/unsplash-anime.jpg">Anime</option>
+            <option value="https://cdn.jsdelivr.net/gh/cgio/tv-assets@main/unsplash-kids.jpg">Kids</option>
+          </select>
+        </div>
+      </div>
+      <div class="button-group">
+        <button type="button" class="btn btn-card" id="generate-card-btn">Generate Folder Cover</button>
+      </div>
+    </div>
+    
+    <div class="dashboard-section">
+      <h3>2. Hero Backdrop Generator (TMDB)</h3>
+      <div class="dashboard-row">
+        <div class="input-group">
+          <label for="api-key-input">TMDB API Key (v3 Auth)</label>
+          <input type="password" id="api-key-input" placeholder="Paste TMDB API key here...">
+        </div>
+        <div class="input-group">
+          <label for="endpoint-select">Catalog Source (192 Posters)</label>
+          <select id="endpoint-select">
+            <option value="/trending/movie/week?language=en-US">New (Trending Movies This Week)</option>
+            <option value="/discover/movie?language=en-US&sort_by=vote_average.desc&vote_count.gte=4000&without_genres=16">Quality (Top Rated Live-Action)</option>
+            <option value="/discover/tv?with_original_language=ja&with_genres=16&vote_count.gte=400&sort_by=popularity.desc">Anime (Mainstream & Classics)</option>
+            <option value="/discover/movie?with_genres=10751&sort_by=popularity.desc">Kids (Popular Family Movies)</option>
+          </select>
+        </div>
+      </div>
+      <div class="button-group">
+        <button type="button" class="btn btn-tmdb" id="generate-hero-btn">Generate Hero Backdrop</button>
+      </div>
+    </div>
+
+    <div class="dashboard-section">
+      <h3>3. Title Logo Generator</h3>
+      <div class="dashboard-row">
+        <div class="input-group">
+          <label for="logo-text-input">Title Logo Text</label>
+          <input type="text" id="logo-text-input" value="New">
+        </div>
+        <div class="input-group">
+          <label for="logo-ghost-input">Ghost Overlay (Visual Compare)</label>
+          <input type="text" id="logo-ghost-input" placeholder="Delete text to clear ghost..." value="Quality">
+        </div>
+      </div>
+      <div class="button-group">
+        <button type="button" class="btn btn-logo" id="generate-logo-btn">Generate Title Logo</button>
+      </div>
+    </div>
+    
+    <hr class="global-divider">
+    <div class="button-group">
+      <a href="https://pixlr.com/editor/" target="_blank" class="btn btn-external btn-pixlr">Open Pixlr (Editor) ↗</a>
+      <a href="https://squoosh.app/" target="_blank" class="btn btn-external btn-squoosh">Open Squoosh (Optimizer) ↗</a>
+    </div>
+  </div>
+
+  <div class="canvas-viewport-wrapper" id="viewport-wrapper">
+    <div id="nuvio-master-canvas">
+      
+      <div id="hero-grid-container">
+        <div class="transform-group">
+          <div class="poster-grid" id="poster-grid">
+            </div>
+        </div>
+      </div>
+
+      <div id="card-preview-container">
+        <img class="card-bg-image" id="card-canvas-img" crossorigin="anonymous" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
+        <div class="gradient-overlay"></div>
+        <h1 class="card-title" id="canvas-title">New</h1>
+      </div>
+
+      <div id="logo-preview-container">
+        <h1 class="logo-title ghost-title" id="logo-ghost-title">Quality</h1>
+        <h1 class="logo-title" id="logo-canvas-title">New</h1>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const body = document.body;
+    const viewportWrapper = document.getElementById('viewport-wrapper');
+    const masterCanvas = document.getElementById('nuvio-master-canvas');
+
+    // Hero Elements
+    const apiKeyInput = document.getElementById('api-key-input');
+    const endpointSelect = document.getElementById('endpoint-select');
+    const generateHeroBtn = document.getElementById('generate-hero-btn');
+    const posterGrid = document.getElementById('poster-grid');
+    const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+    const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
+
+    // Card Elements
+    const textInput = document.getElementById('text-input');
+    const cardUrlSelect = document.getElementById('card-url-select');
+    const generateCardBtn = document.getElementById('generate-card-btn');
+    const cardCanvasImg = document.getElementById('card-canvas-img');
+    const canvasTitle = document.getElementById('canvas-title');
+
+    // Logo Elements
+    const logoTextInput = document.getElementById('logo-text-input');
+    const logoGhostInput = document.getElementById('logo-ghost-input');
+    const generateLogoBtn = document.getElementById('generate-logo-btn');
+    const logoCanvasTitle = document.getElementById('logo-canvas-title');
+    const logoGhostTitle = document.getElementById('logo-ghost-title');
+
+    // --- FONT INJECTION ---
+    async function injectRawWoff2() {
+      try {
+        const rawFontUrl = 'https://cdn.jsdelivr.net/npm/@fontsource/archivo/files/archivo-latin-800-italic.woff2';
+        const fontRes = await fetch(rawFontUrl, { mode: 'cors' });
+        if (!fontRes.ok) throw new Error('Failed to fetch raw font binary');
+        const fontBlob = await fontRes.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const style = document.createElement('style');
+          style.textContent = `@font-face { font-family: 'Archivo-Raw'; src: url(${reader.result}) format('woff2'); font-weight: 800; font-style: italic; }`;
+          document.head.appendChild(style);
+        };
+        reader.readAsDataURL(fontBlob);
+      } catch (e) { console.error('ERROR baking font: ' + e.message); }
+    }
+    injectRawWoff2();
+
+    // --- GLOBAL TOAST NOTIFICATION ENGINE ---
+    let toastTimer;
+    function showToast(message, type) {
+      const toast = document.getElementById('toast-notification');
+      toast.textContent = message;
+      toast.className = '';
+      toast.classList.add('toast-' + type);
+      
+      if (toastTimer) clearTimeout(toastTimer);
+      
+      if (type !== 'warning') {
+        toastTimer = setTimeout(() => { toast.className = ''; }, 4000);
+      }
+    }
+
+    // --- RUTHLESS JAVASCRIPT SCALING ENGINE ---
+    function updatePreviewScale() {
+      const isHero = body.classList.contains('mode-hero');
+      const isCard = body.classList.contains('mode-card');
+      const isLogo = body.classList.contains('mode-logo');
+
+      // Abort scaling entirely if no tool has been activated yet
+      if (!isHero && !isCard && !isLogo) return;
+
+      // Nuke all previous inline styles to completely prevent layout inheritance
+      masterCanvas.style.cssText = '';
+      viewportWrapper.style.cssText = '';
+
+      const availableWidth = viewportWrapper.clientWidth;
+
+      if (isHero) {
+        // FORCING strict Javascript calculation to override WebKit CSS bugs
+        const calculatedHeight = availableWidth * (9 / 16);
+        masterCanvas.style.width = `${availableWidth}px`;
+        masterCanvas.style.height = `${calculatedHeight}px`;
+        viewportWrapper.style.height = `${calculatedHeight}px`;
+      } else {
+        // Strict exact-pixel math for Card and Logo outputs
+        const targetWidth = 720;
+        const targetHeight = 406;
+        
+        let scaleRatio = availableWidth / targetWidth;
+        if (scaleRatio > 1) scaleRatio = 1; 
+
+        masterCanvas.style.width = `${targetWidth}px`;
+        masterCanvas.style.height = `${targetHeight}px`;
+        masterCanvas.style.transform = `scale(${scaleRatio})`;
+        masterCanvas.style.transformOrigin = 'top center';
+        
+        const scaledHeight = targetHeight * scaleRatio;
+        viewportWrapper.style.height = `${scaledHeight}px`;
+      }
+    }
+
+    window.addEventListener('resize', updatePreviewScale);
+
+    // --- TMDB HERO LOGIC ---
+    generateHeroBtn.addEventListener('click', async () => {
+      // Wipes previous UI states
+      body.className = 'mode-hero';
+      updatePreviewScale();
+
+      const apiKey = apiKeyInput.value.trim();
+      const endpoint = endpointSelect.value;
+      
+      if (!apiKey) {
+        showToast('Error: Please enter your TMDB API key to generate the backdrop.', 'error');
+        return;
+      }
+
+      showToast('Fetching catalogs from TMDB...', 'warning');
+      generateHeroBtn.disabled = true;
+
+      try {
+        const pagePromises = [];
+        for (let i = 1; i <= 10; i++) {
+          pagePromises.push(fetch(`${TMDB_BASE_URL}${endpoint}&page=${i}&api_key=${apiKey}`));
+        }
+        
+        const responses = await Promise.all(pagePromises);
+        for (let res of responses) { if (!res.ok) throw new Error('API Request Failed. Check your key.'); }
+
+        const dataPromises = responses.map(res => res.json());
+        const dataResults = await Promise.all(dataPromises);
+
+        let combinedResults = [];
+        dataResults.forEach(data => { combinedResults = combinedResults.concat(data.results); });
+        
+        const validResults = combinedResults.filter(item => item.poster_path !== null);
+        let uniqueResults = Array.from(new Map(validResults.map(item => [item.id, item])).values());
+
+        // --- THE SHUFFLE ENGINE ---
+        // Randomizes the massive poster array to completely break up clumping and identical layouts
+        for (let i = uniqueResults.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [uniqueResults[i], uniqueResults[j]] = [uniqueResults[j], uniqueResults[i]];
+        }
+
+        showToast('Downloading poster files...', 'warning');
+
+        const imagePromises = uniqueResults.map(item => {
+          return new Promise((resolve) => {
+            const img = document.createElement('img');
+            img.crossOrigin = 'anonymous';
+            img.className = 'poster-item';
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null); 
+            img.src = `${TMDB_IMAGE_BASE}${item.poster_path}`;
+          });
+        });
+
+        const resolvedImages = await Promise.all(imagePromises);
+        const successfulImages = resolvedImages.filter(img => img !== null);
+        
+        let top192Images = successfulImages.slice(0, 192);
+
+        if (top192Images.length === 0) {
+          throw new Error('TMDB returned 0 valid images for this query.');
+        }
+
+        // --- GRID PADDING FAILSAFE ---
+        if (top192Images.length < 192) {
+          let i = 0;
+          while (top192Images.length < 192) {
+            top192Images.push(top192Images[i].cloneNode(true));
+            i++;
+          }
+        }
+
+        posterGrid.innerHTML = '';
+        top192Images.forEach(img => { posterGrid.appendChild(img); });
+
+        showToast('Hero Backdrop generated! Ready for screenshot.', 'success');
+        
+      } catch (error) {
+        showToast(error.message, 'error');
+      } finally {
+        generateHeroBtn.disabled = false;
+      }
+    });
+
+    // --- STATIC FOLDER COVER LOGIC ---
+    textInput.addEventListener('input', () => { canvasTitle.textContent = textInput.value; });
+
+    function getProxiedUrl(sourceUrl, targetWidth) {
+      if (!sourceUrl || sourceUrl.startsWith('data:') || sourceUrl.includes('wsrv.nl')) return sourceUrl;
+      if (sourceUrl.includes('postimg.cc') || sourceUrl.includes('jsdelivr.net') || sourceUrl.includes('githack.com')) return sourceUrl;
+      return `https://wsrv.nl/?url=${sourceUrl}&w=${targetWidth}&output=webp`;
+    }
+
+    generateCardBtn.addEventListener('click', async () => {
+      if (!cardUrlSelect.value) {
+        showToast('Error: Please select a cover background source.', 'error');
+        return;
+      }
+
+      body.className = 'mode-card';
+      canvasTitle.textContent = textInput.value;
+      updatePreviewScale();
+
+      const url = getProxiedUrl(cardUrlSelect.value, 720);
+      if (!url) return;
+
+      showToast('Loading folder cover image...', 'warning');
+      generateCardBtn.disabled = true;
+      
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        reader.onloadend = () => {
+          cardCanvasImg.src = reader.result; 
+          showToast('Folder Cover generated! Ready for screenshot.', 'success');
+          generateCardBtn.disabled = false;
+        };
+        reader.readAsDataURL(blob);
+      } catch (error) {
+        showToast('Failed to load cover image.', 'error');
+        console.error(error);
+        generateCardBtn.disabled = false;
+      }
+    });
+
+    // --- TITLE LOGO LOGIC ---
+    logoTextInput.addEventListener('input', () => { logoCanvasTitle.textContent = logoTextInput.value; });
+    logoGhostInput.addEventListener('input', () => { 
+      logoGhostTitle.textContent = logoGhostInput.value; 
+      // Ensure it stays perfectly hidden if input is cleared out
+      logoGhostTitle.style.display = logoGhostInput.value.trim() === '' ? 'none' : 'block';
+    });
+
+    generateLogoBtn.addEventListener('click', () => {
+      body.className = 'mode-logo';
+      logoCanvasTitle.textContent = logoTextInput.value;
+      logoGhostTitle.textContent = logoGhostInput.value;
+      logoGhostTitle.style.display = logoGhostInput.value.trim() === '' ? 'none' : 'block';
+      
+      updatePreviewScale();
+      showToast('Title Logo generated! Delete ghost text before screenshot.', 'success');
+    });
+
+  </script>
+</body>
+</html>
