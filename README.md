@@ -5,3 +5,5 @@ For now, this main tv-assets repo contains files related to a custom Nuvio Colle
 The release area contains official APK downloads and similar for Android TV device provisioning and customization. Some of those files, i.e., cloak.apk and restore.apk, also require an additional file (not made public) to operate correctly.
 
 Mostly, this repo's assets are used privately, but the public parts are made public for practical/efficient private use; i.e. reliable GitHub hosting/CDN infrastructure.
+
+collections-library-backdrop.jpg remains a .jpg (with its original image data) and is not a .webp because lossless compression/conversion to .webp or the same format (.jpg) via a leading tool resulted in a drastically larger file.
