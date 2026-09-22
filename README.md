@@ -25,9 +25,9 @@ Contains standardized landscape card icons (320x180 `nodpi`, 16:9 ratio) with no
 `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/<icon-name>.png`
 
 *Examples:*
+* `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/nuvio.png`
 * `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/tivimate.png`
 * `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/smarttube.png`
-* `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/stremio.png`
 * `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/netflix.png`
 
 #### Direct Input via ADB (Fire TV / Android TV)
