@@ -18,22 +18,24 @@ Contains artwork for a custom Nuvio Collections configuration.
 Contains standardized landscape card icons (320x180 `nodpi`, 16:9 ratio) with normalized lowercase filenames, optimized for quick manual URL entry or bulk script injection.
 
 * **`icons/projectivy-1.1.9/`**: Extracted directly from Projectivy Icon Pack v1.1.9 master assets.
-  * Contains 869 normalized `.png` images.
-  * Includes `icons.json`—a complete mapping reference documenting Android package names, activity components, drawable IDs, and assigned filenames.
+  * Contains 1,002 normalized `.png` images (including all unmapped standalone, retro gaming, and system utility cards).
+  * Includes `icons.json`—a 1,092-entry mapping reference documenting Android package names, activity components, drawable IDs, and assigned filenames (with `null` package fields for standalone generic cards).
 
 **Raw URL Format:**
 `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/<icon-name>.png`
 
 *Examples:*
-* `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/nuvio.png`
 * `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/tivimate.png`
 * `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/smarttube.png`
+* `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/stremio.png`
 * `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/netflix.png`
+* `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/internet_generic.png`
+* `https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/android_settings_generic.png`
 
 #### Direct Input via ADB (Fire TV / Android TV)
 Because tools like atvTools struggle with reliable clipboard pasting on Fire OS / modern Android TV builds, the cleanest method to populate the launcher URL field is sending keystrokes directly over ADB while the launcher input box is active on screen:
 
-`adb -s <IP_OR_SERIAL> shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/netflix.png"`
+`adb -s <IP_OR_SERIAL> shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/internet_generic.png"`
 
 ### 3. `wallpapers/`
 Static background imagery for leanback television home screens.
