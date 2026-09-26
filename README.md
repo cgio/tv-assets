@@ -35,16 +35,16 @@ Contains standardized landscape card icons (320x180 `nodpi`, 16:9 ratio) with no
 #### Direct Input via ADB (Fire TV / Android TV)
 Because tools like atvTools struggle with reliable clipboard pasting on Fire OS / modern Android TV builds, the cleanest method to populate the launcher URL field is sending keystrokes directly over ADB while the launcher input box is active on screen:
 
-`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/tivimate.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/nuvio_tv.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/smarttube.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/internet_generic.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/apkupdater.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/apps_generic.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/mixplorer.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/launcher_manager.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/downloader.png"
-adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/aerial_views.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/tivimate.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/nuvio_tv.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/smarttube.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/internet_generic.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/apkupdater.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/apps_generic.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/mixplorer.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/launcher_manager.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/downloader.png"`
+`adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/aerial_views.png"`
 
 ### 3. `wallpapers/`
 Static background imagery for leanback television home screens.
