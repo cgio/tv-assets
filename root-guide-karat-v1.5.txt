@@ -1,0 +1,587 @@
+# ====================================================================
+# ABOUT & TARGET DEVICE
+# ====================================================================
+
+Fire TV Stick 4K Max (2nd Gen) Root Guide v1.5
+by yiy (https://xdaforums.com/m/yiy.13262626)
+
+USE AT YOUR OWN RISK.
+LOW-LEVEL DEVICE TINKERING MAY SUBJECT DEVICE(S) TO INOPERABILITY/BRICKING, VOIDED WARRANTY, ETC.
+
+TARGET DEVICE:
+Fire TV Stick 4K Max (2nd Gen) | karat | AFTKRT
+
+This guide provides complete instructions for unlocking and installing either:
+- Track A: SweenWolf Custom ROM (Pre-patched to block updates, integrated launcher support)
+- Track B: Amazon Stock ROM (Retains unmodified stock components; involves more manual effort to harden)
+
+IMPORTANT COMPATIBILITY & WINDOW OF OPPORTUNITY:
+- Temp Root and Bootloader Unlock are confirmed working from Fire OS 8.1.4.5 (RS8145.3070N) up through 8.1.8.5 (RS8185.3879N).
+- As long as 8.1.8.5 remains the latest public firmware, you DO NOT need upstream network blocking during initial setup (OOBE). You can safely allow the stick to initialize and update to 8.1.8.5.
+- Both tracks use the same process to reach TWRP recovery. Once bootloader-unlocked, you can switch between tracks via TWRP, but doing so formats device storage and requires going through initial setup again.
+- CRITICAL WARNING: If the window of opportunity closes (Amazon pushes an un-exploitable build past 8.1.8.5), flashing a stock ROM will trigger an incoming update during initial setup, forcing you to boot back into TWRP recovery and re-flash an exploitable build all over again.
+
+
+# ====================================================================
+# PREREQUISITES & HOST PC SETUP
+# ====================================================================
+
+1. VERIFY EXPLOIT WINDOW:
+   Before proceeding, verify that Amazon has not rolled out an un-exploitable firmware build past 8.1.8.5:
+   - https://ftvdb.com/firetv/firmware/com.amazon.karat.android.os/
+   - https://github.com/Pro-me3us/firestick_firmware
+   - https://xdaforums.com/t/temp-root-fire-tv-stick-4k-2nd-gen-series-karat-mantra.4798627/
+
+2. HOST PLATFORM DRIVERS & TOOLS:
+   Ensure your host computer has functioning ADB and Fastboot binaries installed:
+
+   - Linux:
+     sudo apt install -y adb fastboot android-sdk-platform-tools-common
+     sudo usermod -aG plugdev $USER
+
+   - Windows:
+     Download Google Platform-Tools:
+     https://developer.android.com/tools/releases/platform-tools
+     Extract the archive and execute commands from PowerShell or CMD inside that folder.
+     If the stick shows an exclamation mark in Device Manager under Fastboot/Recovery:
+     https://developer.amazon.com/docs/fire-tv/fire-tv-usb-driver-installation.html
+
+   - macOS:
+     brew install android-platform-tools
+
+3. REQUIRED UNIVERSAL DOWNLOADS:
+   Place these files inside your working PC tools directory:
+
+   - Magisk APK:
+     https://github.com/topjohnwu/Magisk/releases
+     (Download the latest APK and rename it to "magisk.apk")
+
+   - Magisk Modules (by SweenWolf):
+     https://xdaforums.com/t/mod-magisk-root-fireos-7-8-magisk-modules-for-fireos-fixing-local-adb-and-launcher-manager.4799301/
+     * local_adb_patch_fos8.zip (Restores local loopback 127.0.0.1 ADB)
+     * adb_shell_helper_fos.zip (Restores execution hooks for shell tools)
+     * lm_su_helper_fos.zip (Allows Launcher Manager root execution)
+     * kftv_lite_mm.zip (Optional: Standalone KFTV Lite module for Track B users)
+
+   - Optional System Modules & Custom Assets:
+     * iOS Emojis v26.4 Unicode 17 for Fire OS (by yiy / cgio):
+       (Fire OS 8 ships with outdated Android 11 glyphs; this updates system fonts to modern Unicode 17 sets)
+       https://github.com/cgio/tv-assets/releases/download/apks/iOS_Emoji_FireOS_v26.4_Unicode17.zip
+
+   - Utility Applications:
+     * TV Bro Browser (armeabi-v7a Gecko build):
+       https://github.com/truefedex/tv-bro/releases/latest
+       (Rename to "tvbro.apk")
+     * MiXplorer File Manager:
+       https://mixplorer.com/beta (or standard build via XDA)
+       (Rename to "mixplorer.apk")
+     * Launcher Manager (System User) v2.0.0:
+       https://xdaforums.com/t/system-user-fire-cube-stick-tv-tablet-ps7704-fireos7-rs8149-fireos8.4759215/
+       (File downloads as "LM_2.0.0.apk")
+     * Custom Launcher (ChillHub):
+       https://github.com/AppleChillVibez/ChillHub/releases
+       (File downloads as "chillhub.apk")
+
+4. HARDWARE CONNECTION:
+   Connect the Fire TV Stick to your PC using the standard Micro-USB to USB-A cable included with the device. Connect the HDMI output to your TV display to monitor on-screen prompts.
+
+
+# ====================================================================
+# PHASE 1: INITIAL EXPLOIT & UNLOCK (ALL USERS)
+# ====================================================================
+
+1. INITIAL SETUP / VERIFY OS VERSION:
+   - If your stick is already running an exploitable build (8.1.4.5 through 8.1.8.5), ensure ADB is enabled and proceed directly to Step 3.
+   - If setting up a brand-new stick or an un-exploitable older version (e.g., 8.1.1.6), perform a factory reset and connect to Wi-Fi. Allow the device to complete initial setup and update to the latest available OS (currently 8.1.8.5).
+
+2. ENABLE DEVELOPER OPTIONS & ADB:
+   - On the Fire TV: Settings -> My Fire TV -> About -> click device name 7 times.
+   - Return to Settings -> My Fire TV -> Developer Options -> turn "ADB Debugging" ON.
+   - Check "Always allow from this computer" and select "OK" on your TV.
+
+3. TEMPORARY ROOT:
+   Download the temp root zip (ghostlock-karat):
+   https://xdaforums.com/t/temp-root-fire-tv-stick-4k-2nd-gen-series-karat-mantra.4798627/
+
+   Extract the archive, open a terminal inside the extracted directory, and run:
+   Linux / macOS:
+   ./root.sh
+
+   Windows (Command Prompt):
+   root.bat
+
+   Windows (PowerShell):
+   .\root.bat
+
+   Note: The script may cycle through multiple attempts and reboot the stick several times. Wi-Fi will disconnect during this step. If the script halts or exits prematurely, re-run it.
+   Once successful, the terminal will return a root shell prompt:
+   root@karat:/ #
+
+   You can further confirm root status by issuing:
+   whoami
+   (Terminal will output: root)
+
+4. PERMANENT BOOTLOADER UNLOCK:
+   Download the amonet unlock zip:
+   https://xdaforums.com/t/unlock-root-twrp-unbrick-fire-tv-stick-4k-2nd-gen-series-karat-mantra.4798951/
+
+   Open a separate terminal window on your PC, navigate into the extracted amonet directory, and execute:
+   Linux / macOS:
+   ./unlock.sh
+
+   Windows (Command Prompt):
+   unlock.bat
+
+   Windows (PowerShell):
+   .\unlock.bat
+
+   Upon completion, the device will reboot directly into the TWRP recovery environment.
+
+
+# ====================================================================
+# CHOOSE YOUR ROM PATH
+# ====================================================================
+
+Your device is now bootloader-unlocked and sitting at the TWRP recovery screen.
+
+-> To install SweenWolf's pre-patched Custom ROM:
+   Proceed immediately below to TRACK A.
+
+-> To install an Amazon Stock ROM:
+   Skip ahead to TRACK B.
+
+
+# ====================================================================
+# TRACK A: SWEENWOLF CUSTOM ROM INSTALLATION & SETUP
+# ====================================================================
+
+1. DOWNLOAD CUSTOM ROM:
+   Download SweenWolf's latest karat ROM release (e.g., RS8180_3739_V4.zip):
+   https://xdaforums.com/t/rom-karat-fire-os-rs8180-3739-rs1849-3133-with-light-debloat-and-custom-launcher.4800114/
+   (Note: SweenWolf ROM packages already bundle the required TrustZone DRM).
+
+2. FLASH ROM & FORMAT IN TWRP:
+   With the device connected in TWRP, run these commands from your PC terminal:
+
+   adb shell twrp sideload
+   adb sideload RS8180_3739_V4.zip
+   (Wait until terminal indicates: Total xfer: 1.00x)
+
+   adb shell twrp format data
+   adb shell twrp wipe cache
+   adb shell twrp wipe dalvik
+   adb reboot
+
+3. OUT-OF-THE-BOX SETUP (OOBE):
+   - The device will reboot into standard Amazon setup. Hold the remote Home button until the LED flashes to pair.
+   - Connect to Wi-Fi and log into your Amazon account. (SweenWolf's ROM has update services pre-disabled; it will not download incoming system updates).
+   - Once setup finishes, you will see KFTV Lite. Leave it on screen for now.
+
+4. RE-ENABLE ADB DEBUGGING:
+   Press the Settings (gear) button on your remote:
+   Settings -> My Fire TV -> About -> click device name 7 times.
+   Go back -> Developer Options -> turn "ADB Debugging" ON and authorize the connection.
+
+5. INSTALL MAGISK & SYSTEM UTILITIES:
+   From your PC directory containing your downloaded APKs:
+
+   (Optional cosmetic tweaks for UI dark mode):
+   adb shell cmd uimode night yes
+   adb shell settings put secure ui_night_mode 2
+
+   adb install -g magisk.apk
+   adb install tvbro.apk
+   adb install mixplorer.apk
+
+   mv magisk.apk magisk.zip
+   adb push magisk.zip /sdcard/
+   mv magisk.zip magisk.apk
+   adb reboot recovery
+
+   (Once TWRP appears):
+   adb shell twrp install /sdcard/magisk.zip
+   adb reboot
+
+6. FINALIZE MAGISK DIRECT INSTALL:
+   Once booted back to the desktop, launch the Magisk UI:
+   adb shell am start -n com.topjohnwu.magisk/.ui.MainActivity
+
+   - If prompted to complete installation, select "OK" -> choose "Direct Install (Recommended)" -> Let it finish.
+   - If not automatically prompted, click "Install" (or "Reinstall") next to Magisk -> select "Direct Install (Recommended)".
+   - In Magisk Settings (gear icon), turn OFF "Check for updates".
+   - Reboot the device:
+     adb reboot
+
+7. INSTALL MAGISK MODULES VIA TERMINAL:
+   Push the required modules to the device storage:
+   adb push adb_shell_helper_fos.zip /sdcard/Download/
+   adb push lm_su_helper_fos.zip /sdcard/Download/
+   adb push local_adb_patch_fos8.zip /sdcard/Download/
+   adb push iOS_Emoji_FireOS_v26.4_Unicode17.zip /sdcard/Download/
+
+   CRITICAL TIMING NOTE FOR ROOT GRANT:
+   Executing the module installer below triggers a time-sensitive Superuser prompt on the TV screen.
+   BEFORE executing the install command, open a second terminal window on your PC and paste the following grant command ready to hit Enter the moment the dialog appears:
+
+   adb shell "input keyevent 61 && input keyevent 61 && input keyevent 66"
+
+   Now, execute installation in your main terminal window:
+   adb shell "su -c '
+   magisk --install-module /sdcard/Download/adb_shell_helper_fos.zip
+   magisk --install-module /sdcard/Download/lm_su_helper_fos.zip
+   magisk --install-module /sdcard/Download/local_adb_patch_fos8.zip
+   magisk --install-module /sdcard/Download/iOS_Emoji_FireOS_v26.4_Unicode17.zip
+   '"
+
+   (Immediately press Enter in your second terminal to trigger the keyevent script and approve the grant).
+
+   If you miss the popup window: Open the Magisk app on TV, navigate to Superuser (bottom tab), toggle "Shell" to ON, and re-run the module installation block above.
+
+   Reboot once modules are applied:
+   adb reboot
+
+8. LAUNCHER CONFIGURATION:
+   Install your launcher and preferred tools:
+   adb install -g chillhub.apk
+   adb install -g LM_2.0.0.apk
+   (Optional: adb install -g tivimate.apk)
+
+   DECIDE YOUR LAUNCHER TOOL:
+   SweenWolf's ROM bundles KFTV Lite, while Launcher Manager (System User) is the external tool. Choose ONE method to avoid conflicts:
+
+   --- METHOD 1: LAUNCHER MANAGER (Recommended) ---
+   First, disable KFTV Lite to prevent dual-hook conflicts:
+   adb shell "am start -n com.amazon.tv.lite.launcher/.SettingsActivity"
+   (Toggle all options to OFF).
+
+   Open Launcher Manager (System User):
+   adb shell "am start -n com.wolf.tn/.ui.SettingsActivity"
+
+   - Select "Don't show again" on the startup prompt.
+   - Select "Custom Launcher" and set it to ChillHub.
+   - In Launcher Manager's main menu, actively toggle the three Amazon protection settings (ARCUS, ADEP, and OTA) so their indicators turn GREEN.
+   - Enable Home button remapping, profile picker remap, and Amazon HUD remap.
+   - Press Home on the remote; when prompted, select Launcher Manager and choose "Always".
+
+   --- METHOD 2: KFTV LITE ---
+   If you prefer using the built-in launcher hook:
+   adb shell "am start -n com.amazon.tv.lite.launcher/.SettingsActivity"
+   - Select your installed custom launcher (ChillHub).
+   - Configure button and layout settings as desired within the KFTV menu.
+
+9. FINAL USER PREFERENCES & CLEANUP:
+   - TV Bro: Open settings, set the rendering engine to Gecko, and configure default search/home pages.
+   - Privacy: Settings -> Preferences -> Privacy Settings -> turn all data tracking OFF.
+   - Time Zone: Settings -> Preferences -> Time Zone -> adjust to your local region.
+   - App permissions: Settings -> Applications -> toggle "Auto Offload" to OFF.
+   - Clean up transferred files:
+     adb shell rm -rf /sdcard/Download/*.zip /sdcard/magisk.zip
+
+   TRACK A INSTALLATION COMPLETE.
+
+
+# ====================================================================
+# TRACK B: AMAZON STOCK ROM INSTALLATION & HARDENING
+# ====================================================================
+
+1. PREREQUISITES & REQUIRED FILES:
+   Ensure you have downloaded a supported stock Fire OS .bin and matching TrustZone (TZ) zip to your PC:
+
+   - Stock ROM (Fire OS 8.1.4.9 recommended):
+     https://d1s31zyz7dcc2d.cloudfront.prod.ota-cloudfront.net/2025/8/18/5d6ed2d4-4b3b-4056-989c-870b49bc788a/update-kindle-karat-RS8149_user_3133_0028723395972.bin
+     (Note: Fire OS 8.1.4.9 natively retains Wi-Fi ADB capabilities before later restrictions. Differences in later builds are primarily security lockdowns; core media streaming and Prime Video capabilities remain identical).
+
+   - Matching TrustZone (TZ) zip:
+     https://xdaforums.com/t/unlock-root-twrp-unbrick-fire-tv-stick-4k-2nd-gen-series-karat-mantra.4798951/page-5#post-90706957
+     (Download the zip that matches your selected stock version, e.g., "8.1.4.9-tz.zip").
+
+2. FLASH STOCK ROM & MATCHING TZ IN TWRP:
+   With your device connected and sitting at the TWRP recovery screen, run the following from your PC terminal:
+   (Note: Adjust filenames to match your chosen build).
+
+   adb push update-kindle-karat-RS8149_user_3133_0028723395972.bin /tmp/stock.bin
+   adb shell twrp format data
+   adb shell twrp install /tmp/stock.bin
+   adb shell twrp sideload
+   adb sideload 8.1.4.9-tz.zip
+
+   Install Magisk directly from TWRP:
+   mv magisk.apk magisk.zip
+   adb push magisk.zip /sdcard/
+   mv magisk.zip magisk.apk
+   adb shell twrp install /sdcard/magisk.zip
+
+   Wipe caches and reboot into initial setup:
+   adb shell twrp wipe cache
+   adb shell twrp wipe dalvik
+   adb reboot
+
+3. NAVIGATE INITIAL SETUP (THE VOICEVIEW NETWORK BYPASS):
+   Because stock ROMs lack pre-baked update suppression, the device will immediately attempt to download an incoming update during initial setup once network connectivity is detected.
+
+   PRACTICAL NOTE: Ensure your disconnect method is within arm's reach (such as toggling an Android/iPhone Wi-Fi hotspot on your desk, or sitting within reach of your router). Do not rely on running to another room to pull a WAN cord or disrupting other internet users on the network.
+
+   1. Pair the Fire TV remote when prompted (hold Home button).
+   2. Connect to your Wi-Fi network (or a phone hotspot).
+   3. The exact moment the screen indicates it is checking for or downloading updates, IMMEDIATELY disconnect the internet connection (toggle hotspot off or disable connection).
+   4. When the stick throws a network connection error, press and hold the Back and Menu buttons simultaneously on the remote for 2 seconds to launch VoiceView.
+   5. Press the Back button once to dismiss VoiceView; this bypasses the mandatory update screen and brings you directly to the Amazon account login screen.
+   6. Briefly reconnect the internet to sign into your Amazon account.
+   7. Disconnect the internet again immediately after sign-in completes, then finish the remaining setup prompts offline to reach the Home screen safely.
+
+4. RE-ENABLE ADB & ABORT STAGED UPDATES:
+   Once on the stock Home screen, immediately enable ADB:
+
+   - Go to Settings -> My Fire TV -> About -> click the device name 7 times.
+   - Go back -> Developer Options -> turn "ADB Debugging" ON.
+   - Check "Always allow from this computer" and select "OK" on your TV.
+
+   Immediately purge any staged background update files:
+   adb shell pm clear com.amazon.device.software.ota
+   adb shell pm clear com.android.providers.downloads
+
+5. FINALIZE MAGISK DIRECT INSTALL:
+   Launch the Magisk UI via terminal:
+   adb install -g magisk.apk
+   adb shell am start -n com.topjohnwu.magisk/.ui.MainActivity
+
+   - If prompted to complete installation, select "OK" -> choose "Direct Install (Recommended)".
+   - If not automatically prompted, click "Install" (or "Reinstall") next to Magisk -> select "Direct Install (Recommended)".
+   - In Magisk Settings (gear icon), turn OFF "Check for updates".
+   - Reboot the device:
+     adb reboot
+
+6. HARDEN SYSTEM & PERMANENTLY SUPPRESS UPDATES:
+   Once rebooted, execute this root block to disable Amazon's background update and telemetry services.
+
+   CRITICAL TIMING NOTE FOR ROOT GRANT:
+   Issuing 'su' triggers a time-sensitive Superuser prompt on the TV screen.
+   BEFORE running the commands below, open a second terminal window on your PC and paste the following ready to hit Enter:
+
+   adb shell "input keyevent 61 && input keyevent 61 && input keyevent 66"
+
+   In your main terminal, enter root shell:
+   adb shell
+   su
+
+   (Immediately press Enter in your second terminal to approve the grant via keyevents. Alternatively, use the remote: verify "Forever" is selected, then click "Grant").
+
+   Execute in root terminal:
+   pm disable com.amazon.device.software.ota
+   pm clear com.amazon.device.software.ota
+   pm disable com.amazon.device.software.ota.override
+   pm clear com.amazon.device.software.ota.override
+   pm disable com.amazon.tv.forcedotaupdater.v2
+   pm clear com.amazon.tv.forcedotaupdater.v2
+   pm disable com.fireos.arcus.proxy
+   pm clear com.fireos.arcus.proxy
+   pm disable com.amazon.adep
+   pm clear com.amazon.adep
+   pm disable com.amazon.sneakpeek
+   pm clear com.amazon.sneakpeek
+   pm disable com.amazon.client.metrics
+   pm clear com.amazon.client.metrics
+
+   Lock the blacklist file into an empty, immutable state:
+   echo '<?xml version="1.0" encoding="utf-8" standalone="yes" ?><map><set name="DenyListKeyPackages"></set></map>' > /data/system/PackageManagerDenyList
+   chmod 444 /data/system/PackageManagerDenyList
+   chattr +i /data/system/PackageManagerDenyList
+
+   sync
+   reboot
+
+7. INSTALL MAGISK MODULES VIA TERMINAL:
+   Push the required modules to the device storage:
+   adb push adb_shell_helper_fos.zip /sdcard/Download/
+   adb push lm_su_helper_fos.zip /sdcard/Download/
+   adb push local_adb_patch_fos8.zip /sdcard/Download/
+   adb push iOS_Emoji_FireOS_v26.4_Unicode17.zip /sdcard/Download/
+   (Optional: adb push kftv_lite_mm.zip /sdcard/Download/ - if using KFTV Lite instead of Launcher Manager)
+
+   Install via root shell:
+   adb shell "su -c '
+   magisk --install-module /sdcard/Download/adb_shell_helper_fos.zip
+   magisk --install-module /sdcard/Download/lm_su_helper_fos.zip
+   magisk --install-module /sdcard/Download/local_adb_patch_fos8.zip
+   magisk --install-module /sdcard/Download/iOS_Emoji_FireOS_v26.4_Unicode17.zip
+   '"
+
+   Reboot once modules are applied:
+   adb reboot
+
+   Verify local ADB loopback is open:
+   adb shell "echo '' | nc -w 1 127.0.0.1 5555 && echo 'SUCCESS: Local ADB port 5555 is open!' || echo 'FAILED: Port unreachable'"
+
+8. LAUNCHER CONFIGURATION:
+   Install your preferred utility apps:
+   (Optional cosmetic tweak for UI dark mode):
+   adb shell cmd uimode night yes
+   adb shell settings put secure ui_night_mode 2
+
+   adb install -g chillhub.apk
+   adb install -g LM_2.0.0.apk
+   adb install tvbro.apk
+   adb install mixplorer.apk
+   (Optional: adb install -g tivimate.apk)
+
+   Open Launcher Manager (System User):
+   adb shell "am start -n com.wolf.tn/.ui.SettingsActivity"
+
+   - Select "Don't show again" on the startup prompt.
+   - Select "Custom Launcher" and set it to ChillHub.
+   - In Launcher Manager's main menu, actively toggle the three Amazon protection settings (ARCUS, ADEP, and OTA) so their indicators turn GREEN.
+     (Note: Even though you disabled these via root commands earlier, turning them green here synchronizes the Launcher Manager UI and ensures watchdog tasks remain inactive).
+   - Enable Home button remapping, profile picker remap, and Amazon HUD remap.
+   - Press Home on the remote; when prompted, select Launcher Manager and choose "Always".
+
+   (Note: If you prefer using KFTV Lite on Stock rather than Launcher Manager, install kftv_lite_mm.zip in Step 7 and open it via: adb shell am start -n com.amazon.tv.lite.launcher/.SettingsActivity).
+
+9. FINAL USER PREFERENCES & CLEANUP:
+   - TV Bro: Open settings, set the rendering engine to Gecko, and configure default search/home pages.
+   - Privacy: Settings -> Preferences -> Privacy Settings -> turn all data tracking OFF.
+   - App permissions: Settings -> Applications -> toggle "Auto Offload" to OFF.
+   - Clean up temporary flash files:
+     adb shell rm -rf /sdcard/Download/*.zip /sdcard/magisk.zip
+
+   TRACK B INSTALLATION COMPLETE.
+
+
+# ====================================================================
+# NEXT STEPS: OPTIONAL SYSTEM DEBLOATING
+# ====================================================================
+
+Both tracks leave background Amazon telemetry, advertising layers, and
+unused system components intact; SweenWolf's custom ROM primarily focuses
+on suppressing OTA updates and anti-modding mechanisms rather than full
+userland debloating.
+
+Because you now have permanent root (`su`) and unlocked package management,
+you can selectively disable non-essential Amazon services using `pm disable`
+in an ADB root shell or third-party debloat toolboxes available on XDA.
+
+Exercise caution with aggressive package removal: Amazon frequently bundles
+essential device functionality alongside telemetry inside the same package
+(such as Vizzini), requiring targeted component/activity disables rather than
+blanket package disabling, while media playback engines rely on interdependent
+package pairs (such as AVOD and Firebat for Prime Video). Consult community-
+maintained Fire OS 8 debloat lists on XDA to tailor service removals to your
+specific hardware and streaming requirements without breaking core features.
+
+
+# ====================================================================
+# APPENDIX A: FIRE TV REMOTE SHORTCUTS & HARDWARE COMBOS
+# ====================================================================
+
+1. REMOTE HARDWARE FACTORY RESET (BLE CONTROLLER WIPE)
+--------------------------------------------------------------------------------
+Buttons:  LEFT (D-Pad ring) + MENU (three lines) + BACK
+Duration: Hold together for 12 seconds
+Action:   Completely resets the remote's onboard microcontroller flash memory,
+          clears paired host MACs and BLE cache, and drops it into unconfigured
+          state.
+Note:     Release buttons, wait 5 seconds, remove batteries, power cycle the
+          Stick, then re-insert batteries.
+
+2. HARDWARE REBOOT (STICK RESTART)
+--------------------------------------------------------------------------------
+Buttons:  SELECT (Center button) + PLAY/PAUSE
+Duration: Hold together for ~5 seconds
+Action:   Sends an immediate hardware-level reboot signal directly to the
+          Fire TV Stick, bypassing an unresponsive system UI.
+
+3. RECOVERY / SYSTEM FACTORY RESET
+--------------------------------------------------------------------------------
+Buttons:  BACK + RIGHT (D-Pad ring)
+Duration: Hold together for 10 seconds
+Action:   Bypasses the settings menus and brings up the system-level factory
+          reset confirmation prompt / recovery action.
+
+4. RESOLUTION CYCLING / DISPLAY RECOVERY
+--------------------------------------------------------------------------------
+Buttons:  UP (D-Pad ring) + REWIND
+Duration: Hold together for ~5 seconds
+Action:   Used to recover from black screens or unsupported HDMI refresh rates.
+          Cycles sequentially through 480p, 720p, 1080p (50/60Hz), and 4K
+          every ~10 seconds until you press SELECT to confirm a working mode.
+
+5. SYSTEM DEVELOPER TOOLS MENU & X-RAY HUD
+--------------------------------------------------------------------------------
+Buttons:  SELECT (Center button) + DOWN (D-Pad ring) -> then MENU
+Duration: Hold SELECT for 1 second, press and hold DOWN for 3 to 4 seconds,
+          release both, then immediately press MENU once.
+Action:   Opens the hidden Developer Tools dialog overlay (System X-Ray,
+          real-time CPU/GPU monitor, frame drops, network speeds, advanced options).
+ADB Alt:  adb shell am start -n com.amazon.ssm/com.amazon.ssm.ControlPanel
+
+6. QUICK SETTINGS OVERLAY
+--------------------------------------------------------------------------------
+Buttons:  HOME
+Duration: Hold for 3 to 5 seconds
+Action:   Pulls up the quick-access flyout panel (Profiles, Sleep, Screen
+          Mirroring, and Settings) from within any active foreground application.
+
+7. PAIRING MODE / RE-CONNECT REMOTE
+--------------------------------------------------------------------------------
+Buttons:  HOME
+Duration: Hold for 10 seconds (within 3-5 feet of the Stick)
+Action:   Forces the remote into active BLE discovery/pairing mode. LED indicator
+          will pulse blue or amber when pairing is engaged.
+
+8. ACCESSIBILITY SHORTCUTS
+--------------------------------------------------------------------------------
+- VoiceView (Screen Reader):
+  Hold BACK + MENU for 2 seconds. Toggles the accessibility speech engine.
+
+- Screen Magnifier (Zoom):
+  Hold BACK + FAST-FORWARD for 2 seconds. Toggles pan-and-zoom mode
+  (Once enabled: MENU + REWIND/FF to zoom; MENU + D-Pad arrows to pan).
+
+- Text Banner (High Contrast):
+  Hold REWIND + FAST-FORWARD for 2 seconds. Toggles high-contrast text ribbon.
+
+
+# ====================================================================
+# APPENDIX B: REFERENCE DNS ENDPOINTS (CAVEAT & FALLBACK WARNING)
+# ====================================================================
+
+IMPORTANT DISCLAIMER REGARDING UPSTREAM DNS BLOCKING:
+Amazon devices actively utilize hardcoded public fallback resolvers (e.g., Google
+and Cloudflare Anycast IPs) and DNS-over-TLS (DoT). In real-world testing, router-level
+domain blocks fail to prevent initial OOBE update downloads. Do NOT rely on DNS blocks
+as a sole mechanism to protect an exploitable firmware state during initial setup.
+
+The endpoints below are provided strictly for research, custom sinkhole profiling
+(NextDNS/Pi-hole), and post-setup telemetry observation:
+
+amzdigital-a.akamaihd.net
+amzdigitaldownloads.edgesuite.net
+amazoneu-ota-prod.amazon.com
+arcus-useast.amazon.com
+arcus-uswest.amazon.com
+device-messaging-na.amazon.com
+firmware.amazon.com
+fota-secure-dn.amazon.com
+ota-cloudfront.amazon.com
+softwareupdates.amazon.com
+updates.amazon.com
+d1s31zyz7dcc2d.cloudfront.net
+d1s31zyz7dcc2d.cloudfront.ota-cloudfront.net
+d1s31zyz7dcc2d.cloudfront.prod.ota-cloudfront.net
+d2jmp5j6kma5v6.cloudfront.net
+dd6dycghj50pd.cloudfront.net
+prod.ota-cloudfront.net
+*.ota-cloudfront.net
+
+
+# ====================================================================
+# APPENDIX C: CUSTOM LAUNCHER CARD ICONS
+# ====================================================================
+
+If using ChillHub or Projectivy and you want clean, unified 16:9 banner icons,
+a repository of Android TV icons is available here:
+https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/
+
+To apply an icon URL directly to an app without typing on the TV:
+1. Open the icon URL input box in your launcher settings on the TV.
+2. From your PC terminal, send the image URL directly into the text field:
+   adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/tivimate.png"
