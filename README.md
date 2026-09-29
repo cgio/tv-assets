@@ -58,3 +58,6 @@ The repository's [Releases area](https://github.com/cgio/tv-assets/releases/tag/
 
 **Direct Release Download Format:**
 `https://github.com/cgio/tv-assets/releases/download/apks/<filename>.apk`
+
+### 5. TV Bro Custom Search Engine URL
+* `adb shell input text "https://degoog.org/search?q=[query]"`
