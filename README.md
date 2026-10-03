@@ -61,3 +61,6 @@ The repository's [Releases area](https://github.com/cgio/tv-assets/releases/tag/
 
 ### 5. TV Bro Custom Search Engine URL
 * `adb shell input text "https://degoog.org/search?q=[query]"`
+
+### 6. Lossless Screen Capture with Timestamped File Name
+* `adb exec-out screencap -p > "screen_$(date +%Y%m%d_%H%M%S).png"`
