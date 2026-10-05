@@ -38,13 +38,21 @@ Because tools like atvTools struggle with reliable clipboard pasting on Fire OS 
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/tivimate.png"`
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/nuvio_tv.png"`
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/smarttube.png"`
-* `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/internet_generic.png"`
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/apkupdater.png"`
-* `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/apps_generic.png"`
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/mixplorer.png"`
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/launcher_manager.png"`
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/downloader.png"`
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/aerial_views.png"`
+
+For KFTV Lite:
+* `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/more_settings_generic.png"`
+*Note: KFTV Lite serves as the authoritative Home intent proxy on SweenWolf's ROM(s)—its manifest priority (960) supersedes Launcher Manager (0) to guarantee persistent launcher routing across reboots.*
+
+For Appstore:
+* `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/apps_generic.png"`
+
+For TV Bro:
+* `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/internet_generic.png"`
 
 ### 3. `wallpapers/`
 Static background imagery for leanback television home screens.
