@@ -64,3 +64,10 @@ The repository's [Releases area](https://github.com/cgio/tv-assets/releases/tag/
 
 ### 6. Lossless Screen Capture with Timestamped File Name
 * `adb exec-out screencap -p > "screen_$(date +%Y%m%d_%H%M%S).png"`
+
+### 7. Internal Use: Migration (State Upgrade) for Script Cloak 2.0 and Restore 2.0
+Providing device is cloaked (confirm via no access to system menu), restore device via Restore, then upgrade.
+
+If Cloaked and Restore were upgraded or not available, migrate_stick.sh is backup:
+* `adb push ~/Downloads/migrate_stick.sh /data/local/tmp/`
+* `adb shell su -c "sh /data/local/tmp/migrate_stick.sh"`
