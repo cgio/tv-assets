@@ -54,6 +54,9 @@ For Appstore:
 For TV Bro:
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/internet_generic.png"`
 
+For various Projectivy (ChillHub wallpaper) plugins/apps:
+* `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/projectivy_plugin.png"`
+
 ### 3. `wallpapers/`
 Static background imagery for leanback television home screens.
 
