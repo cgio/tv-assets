@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>WALLPAPERS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Francois+One&family=Rubik+Vinyl&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --phi: 1.6180339887;
+      --fib-1: 1px;
+      --fib-2: 2px;
+      --fib-3: 3px;
+      --fib-5: 5px;
+      --fib-8: 8px;
+      --fib-13: 13px;
+      --fib-21: 21px;
+      --fib-34: 34px;
+      --fib-55: 55px;
+      --fib-89: 89px;
+      --fib-144: 144px;
+      --fib-233: 233px;
+      --fib-377: 377px;
+      --fib-610: 610px;
+      --fib-987: 987px;
+
+      --nav-btn-size: var(--fib-55);
+      --nav-pad: var(--fib-8);
+      --nav-dock-height: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
+      --info-dock-gap: var(--fib-13);
+
+      --glass-bg: rgba(18, 18, 22, 0.68);
+      --glass-border: rgba(255, 255, 255, 0.13);
+      --glass-highlight: rgba(255, 255, 255, 0.25);
+      --glass-shadow: 0 var(--fib-8) var(--fib-34) rgba(0, 0, 0, 0.65);
+      --font-body: 'Francois One', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-splash: 'Rubik Vinyl', cursive;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: #0c0d10;
+      color: #f5f5f7;
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #texture-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.45;
+    }
+
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10, 10, 14, 0.88);
+      backdrop-filter: blur(var(--fib-21));
+      -webkit-backdrop-filter: blur(var(--fib-21));
+      z-index: 1000;
+      transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1), transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #splash-screen.dismissed {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+
+    .splash-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--fib-21) var(--fib-34);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--fib-21);
+      box-shadow: var(--glass-shadow);
+      text-align: center;
+    }
+
+    .splash-title {
+      font-family: var(--font-splash);
+      font-size: clamp(2.5rem, 8vw, 5.5rem);
+      letter-spacing: var(--fib-5);
+      color: #ffffff;
+      text-shadow: 0 0 var(--fib-34) rgba(255, 255, 255, 0.25);
+      line-height: 1.1;
+    }
+
+    .splash-sub {
+      font-family: var(--font-body);
+      font-size: clamp(0.85rem, 2.2vw, 1.25rem);
+      letter-spacing: var(--fib-2);
+      color: rgba(235, 235, 245, 0.8);
+      margin-top: var(--fib-8);
+      text-transform: uppercase;
+    }
+
+    #gallery-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: var(--fib-987);
+      padding: var(--fib-34) var(--fib-13) calc(var(--fib-144) + env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: var(--fib-55);
+    }
+
+    .image-slot {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--fib-13);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 var(--fib-13) var(--fib-34) rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transform: translateZ(0);
+    }
+
+    .image-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.34s ease-in-out;
+    }
+
+    .image-slot img.loaded {
+      opacity: 1;
+    }
+
+    .glass-pill {
+      position: fixed;
+      bottom: calc(var(--fib-21) + var(--nav-dock-height) + var(--info-dock-gap) + env(safe-area-inset-bottom));
+      z-index: 900;
+      max-width: min(calc(100vw - var(--fib-34)), var(--fib-610));
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(var(--fib-21));
+      -webkit-backdrop-filter: blur(var(--fib-21));
+      border-radius: var(--fib-13);
+      box-shadow: var(--glass-shadow);
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      color: #e5e5ea;
+      transition: opacity 0.21s ease, transform 0.21s ease, left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+      opacity: 0;
+      transform: translateY(var(--fib-8));
+      pointer-events: none;
+    }
+
+    .glass-pill.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    #info-pill {
+      padding: var(--fib-8) var(--fib-13);
+      word-break: break-all;
+      user-select: text;
+      cursor: pointer;
+    }
+
+    #search-box {
+      display: flex;
+      align-items: center;
+      padding: var(--fib-5) var(--fib-8);
+      gap: var(--fib-8);
+      width: min(360px, calc(100vw - var(--fib-55)));
+    }
+
+    #search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #ffffff;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      user-select: text;
+    }
+
+    #search-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 0.85rem;
+    }
+
+    #btn-search-clear {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0 var(--fib-5);
+    }
+
+    #nav-dock {
+      position: fixed;
+      bottom: calc(var(--fib-21) + env(safe-area-inset-bottom));
+      z-index: 950;
+      display: flex;
+      align-items: center;
+      gap: var(--fib-8);
+      padding: var(--nav-pad);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--fib-21);
+      backdrop-filter: blur(var(--fib-34)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--fib-34)) saturate(180%);
+      box-shadow: var(--glass-shadow);
+      transition: left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.hand-right #nav-dock,
+    body.hand-right .glass-pill {
+      right: var(--fib-21);
+      left: auto;
+    }
+
+    body.hand-left #nav-dock,
+    body.hand-left .glass-pill {
+      left: var(--fib-21);
+      right: auto;
+    }
+
+    body.hand-right #btn-hand   { order: 1; }
+    body.hand-right #btn-search { order: 2; }
+    body.hand-right #btn-info   { order: 3; }
+    body.hand-right #btn-copy   { order: 4; }
+    body.hand-right #btn-save   { order: 5; }
+    body.hand-right #btn-random { order: 6; }
+    body.hand-right #btn-prev   { order: 7; }
+    body.hand-right #btn-next   { order: 8; }
+
+    body.hand-left #btn-prev   { order: 1; }
+    body.hand-left #btn-next   { order: 2; }
+    body.hand-left #btn-random { order: 3; }
+    body.hand-left #btn-save   { order: 4; }
+    body.hand-left #btn-copy   { order: 5; }
+    body.hand-left #btn-info   { order: 6; }
+    body.hand-left #btn-search { order: 7; }
+    body.hand-left #btn-hand   { order: 8; }
+
+    .nav-btn {
+      width: var(--nav-btn-size);
+      height: var(--nav-btn-size);
+      min-width: var(--nav-btn-size);
+      border-radius: var(--fib-13);
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.45rem;
+      cursor: pointer;
+      transition: transform 0.13s ease, background 0.13s ease, border-color 0.13s ease;
+    }
+
+    .nav-btn:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--glass-highlight);
+    }
+
+    .dice-icon {
+      display: inline-block;
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    #toast {
+      position: fixed;
+      top: var(--fib-34);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: var(--fib-8) var(--fib-21);
+      border-radius: var(--fib-21);
+      backdrop-filter: blur(var(--fib-21));
+      -webkit-backdrop-filter: blur(var(--fib-21));
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.21s ease, transform 0.21s ease;
+      z-index: 1100;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="hand-right">
+
+  <canvas id="texture-canvas"></canvas>
+
+  <div id="splash-screen">
+    <div class="splash-box">
+      <div class="splash-title">WALLPAPERS</div>
+      <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
+    </div>
+  </div>
+
+  <div id="toast">Notification</div>
+
+  <div id="info-pill" class="glass-pill" title="Click to highlight text">#1 | ...</div>
+
+  <div id="search-box" class="glass-pill">
+    <input type="text" id="search-input" placeholder="Filter by name or go directly; e.g. #33" autocomplete="off" spellcheck="false">
+    <button id="btn-search-clear" aria-label="Clear & Close Search">✕</button>
+  </div>
+
+  <main id="gallery-container"></main>
+
+  <nav id="nav-dock">
+    <button class="nav-btn" id="btn-hand" aria-label="Toggle Hand Orientation">🫱🏼</button>
+    <button class="nav-btn" id="btn-search" aria-label="Search Collection">🔍</button>
+    <button class="nav-btn" id="btn-info" aria-label="Toggle File Info">ℹ️</button>
+    <button class="nav-btn" id="btn-copy" aria-label="Copy URL">📋</button>
+    <button class="nav-btn" id="btn-save" aria-label="Download Wallpaper">💾</button>
+    <button class="nav-btn" id="btn-random" aria-label="Random Wallpaper"><span class="dice-icon" id="dice">🎲</span></button>
+    <button class="nav-btn" id="btn-prev" aria-label="Previous Wallpaper">⬅️</button>
+    <button class="nav-btn" id="btn-next" aria-label="Next Wallpaper">➡️</button>
+  </nav>
+
+  <script>
+    const GITHUB_REPO = 'cgio/tv-assets';
+    const GITHUB_BRANCH = 'main';
+    const MANIFEST_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/wallpapers/roseberys/wallpapers.json`;
+    const RAW_IMG_BASE = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/wallpapers/roseberys/`;
+
+    let wallpapers = [];
+    let visibleIndices = [];
+    let currentIndex = 0;
+    let isLeftHanded = false;
+    let infoVisible = false;
+    let searchVisible = false;
+    let diceDegrees = 0;
+    const SLOTS = [];
+
+    (function initOrganicTexture() {
+      const canvas = document.getElementById('texture-canvas');
+      const ctx = canvas.getContext('2d');
+      const size = 128;
+      canvas.width = size;
+      canvas.height = size;
+
+      const imgData = ctx.createImageData(size, size);
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        const val = Math.floor(Math.random() * 25) + 8;
+        imgData.data[i] = val;
+        imgData.data[i + 1] = val + 2;
+        imgData.data[i + 2] = val + 5;
+        imgData.data[i + 3] = 255;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      canvas.style.backgroundImage = `url(${canvas.toDataURL()})`;
+      canvas.style.backgroundRepeat = 'repeat';
+      canvas.style.backgroundSize = '128px 128px';
+    })();
+
+    const diceEl = document.getElementById('dice');
+    diceDegrees = Math.floor(Math.random() * 10) * 36;
+    diceEl.style.transform = `rotate(${diceDegrees}deg)`;
+
+    function stepDiceRotation() {
+      diceDegrees += 360 + (36 * 3);
+      diceEl.style.transform = `rotate(${diceDegrees}deg)`;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1618);
+    }
+
+    function updateActiveMemoryBudget(visiblePos) {
+      if (visibleIndices.length === 0) return;
+      currentIndex = visibleIndices[visiblePos];
+
+      const lower = Math.max(0, visiblePos - 3);
+      const upper = Math.min(visibleIndices.length - 1, visiblePos + 3);
+      const activeWindow = new Set(visibleIndices.slice(lower, upper + 1));
+
+      SLOTS.forEach((slot, idx) => {
+        const img = slot.querySelector('img');
+        if (activeWindow.has(idx)) {
+          if (!img.src || img.src === window.location.href) {
+            img.src = RAW_IMG_BASE + encodeURIComponent(wallpapers[idx]);
+            img.onload = () => img.classList.add('loaded');
+          }
+        } else {
+          if (img.src) {
+            img.classList.remove('loaded');
+            img.removeAttribute('src');
+          }
+        }
+      });
+
+      const activeFile = wallpapers[currentIndex] || '';
+      document.getElementById('info-pill').textContent = `#${(currentIndex + 1).toLocaleString()} | ${activeFile}`;
+    }
+
+    const centerObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.target.style.display !== 'none') {
+          const slotIdx = parseInt(entry.target.dataset.index, 10);
+          const vPos = visibleIndices.indexOf(slotIdx);
+          if (vPos !== -1) updateActiveMemoryBudget(vPos);
+        }
+      });
+    }, { rootMargin: '-40% 0px -40% 0px', threshold: 0 });
+
+    async function loadWallpapers() {
+      try {
+        const res = await fetch(MANIFEST_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        wallpapers = await res.json();
+      } catch (err) {
+        showToast('Using local manifest fallback');
+        const localRes = await fetch('roseberys/wallpapers.json');
+        wallpapers = await localRes.json();
+      }
+
+      if (!wallpapers || !wallpapers.length) {
+        showToast('No wallpapers located.');
+        document.getElementById('splash-count').textContent = 'CURRENT TOTAL: 0';
+        return;
+      }
+
+      document.getElementById('splash-count').textContent = `CURRENT TOTAL: ${wallpapers.length.toLocaleString()}`;
+
+      const container = document.getElementById('gallery-container');
+      container.innerHTML = '';
+      visibleIndices = [];
+
+      wallpapers.forEach((file, index) => {
+        const slot = document.createElement('div');
+        slot.className = 'image-slot';
+        slot.dataset.index = index;
+
+        const img = document.createElement('img');
+        img.alt = file;
+        img.loading = 'eager';
+
+        slot.appendChild(img);
+        container.appendChild(slot);
+        SLOTS.push(slot);
+        visibleIndices.push(index);
+        centerObserver.observe(slot);
+      });
+
+      const randomStart = Math.floor(Math.random() * (wallpapers.length - 8)) + 4;
+      const initialPos = Math.max(0, Math.min(randomStart, wallpapers.length - 1));
+
+      SLOTS[initialPos].scrollIntoView({ block: 'center' });
+      updateActiveMemoryBudget(initialPos);
+
+      setTimeout(() => {
+        document.getElementById('splash-screen').classList.add('dismissed');
+      }, 750);
+    }
+
+    function scrollToVisiblePosition(vPos) {
+      if (visibleIndices.length === 0) return;
+      if (vPos < 0) vPos = visibleIndices.length - 1;
+      else if (vPos >= visibleIndices.length) vPos = 0;
+
+      const targetSlot = SLOTS[visibleIndices[vPos]];
+      targetSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    document.getElementById('btn-prev').addEventListener('click', () => {
+      const curVPos = visibleIndices.indexOf(currentIndex);
+      scrollToVisiblePosition(curVPos - 1);
+    });
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+      const curVPos = visibleIndices.indexOf(currentIndex);
+      scrollToVisiblePosition(curVPos + 1);
+    });
+
+    document.getElementById('btn-random').addEventListener('click', () => {
+      if (visibleIndices.length <= 1) return;
+      stepDiceRotation();
+      let nextVPos;
+      const curVPos = visibleIndices.indexOf(currentIndex);
+      do {
+        nextVPos = Math.floor(Math.random() * visibleIndices.length);
+      } while (nextVPos === curVPos);
+
+      scrollToVisiblePosition(nextVPos);
+      showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
+    });
+
+    document.getElementById('btn-hand').addEventListener('click', () => {
+      isLeftHanded = !isLeftHanded;
+      document.body.className = isLeftHanded ? 'hand-left' : 'hand-right';
+      document.getElementById('btn-hand').textContent = isLeftHanded ? '🫲🏼' : '🫱🏼';
+      document.getElementById('btn-search').textContent = isLeftHanded ? '🔎' : '🔍';
+      showToast(isLeftHanded ? 'Left-handed Mode' : 'Right-handed Mode');
+    });
+
+    const infoPill = document.getElementById('info-pill');
+    document.getElementById('btn-info').addEventListener('click', () => {
+      infoVisible = !infoVisible;
+      if (infoVisible && searchVisible) toggleSearch(false);
+      infoPill.classList.toggle('visible', infoVisible);
+    });
+
+    infoPill.addEventListener('click', () => {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(infoPill);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      showToast('Text Highlighted');
+    });
+
+    const searchBox = document.getElementById('search-box');
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('btn-search');
+
+    function toggleSearch(show) {
+      searchVisible = show !== undefined ? show : !searchVisible;
+      if (searchVisible && infoVisible) {
+        infoVisible = false;
+        infoPill.classList.remove('visible');
+      }
+      searchBox.classList.toggle('visible', searchVisible);
+      if (searchVisible) searchInput.focus();
+      else searchInput.blur();
+    }
+
+    searchBtn.addEventListener('click', () => toggleSearch());
+
+    function applySearchFilter(query, showFeedback = true) {
+      const trimmed = query.trim();
+      const directMatch = trimmed.match(/^#(\d[\d,]*)$/);
+      if (directMatch) {
+        const num = parseInt(directMatch[1].replace(/,/g, ''), 10);
+        if (num >= 1 && num <= wallpapers.length) {
+          const targetIdx = num - 1;
+          visibleIndices = [targetIdx];
+          wallpapers.forEach((_, idx) => {
+            SLOTS[idx].style.display = (idx === targetIdx) ? 'flex' : 'none';
+          });
+          scrollToVisiblePosition(0);
+          if (showFeedback) showToast(`Wallpaper #${num.toLocaleString()}`);
+          return;
+        } else {
+          if (showFeedback) showToast(`Out of range (1–${wallpapers.length.toLocaleString()})`);
+          return;
+        }
+      }
+
+      const q = trimmed.toLowerCase();
+      visibleIndices = [];
+
+      wallpapers.forEach((fname, idx) => {
+        const matches = !q || fname.toLowerCase().includes(q);
+        SLOTS[idx].style.display = matches ? 'flex' : 'none';
+        if (matches) visibleIndices.push(idx);
+      });
+
+      if (visibleIndices.length > 0) {
+        if (!visibleIndices.includes(currentIndex)) {
+          scrollToVisiblePosition(0);
+        } else {
+          updateActiveMemoryBudget(visibleIndices.indexOf(currentIndex));
+        }
+        if (showFeedback && q) showToast(`${visibleIndices.length.toLocaleString()} Matches`);
+      } else {
+        if (showFeedback) showToast('No Matches Found');
+      }
+    }
+
+    searchInput.addEventListener('input', (e) => applySearchFilter(e.target.value));
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        toggleSearch(false);
+      }
+    });
+
+    document.getElementById('btn-search-clear').addEventListener('click', () => {
+      searchInput.value = '';
+      applySearchFilter('', false);
+      toggleSearch(false);
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      const activeFile = wallpapers[currentIndex];
+      const rawUrl = RAW_IMG_BASE + encodeURIComponent(activeFile);
+      navigator.clipboard.writeText(rawUrl).then(() => {
+        showToast('URL Copied');
+      }).catch(() => {
+        showToast('Clipboard access denied');
+      });
+    });
+
+    document.getElementById('btn-save').addEventListener('click', () => {
+      const activeFile = wallpapers[currentIndex];
+      const rawUrl = RAW_IMG_BASE + encodeURIComponent(activeFile);
+      const a = document.createElement('a');
+      a.href = rawUrl;
+      a.download = activeFile;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('Downloading...');
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement === searchInput) {
+        if (e.key === 'Escape') toggleSearch(false);
+        return;
+      }
+      if (e.key === 'ArrowRight' || e.key === 'j') {
+        const curVPos = visibleIndices.indexOf(currentIndex);
+        scrollToVisiblePosition(curVPos + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'k') {
+        const curVPos = visibleIndices.indexOf(currentIndex);
+        scrollToVisiblePosition(curVPos - 1);
+      } else if (e.key === 'r') {
+        document.getElementById('btn-random').click();
+      } else if (e.key === '/' || e.key === 'f') {
+        e.preventDefault();
+        toggleSearch(true);
+      } else if (e.key === 'Escape') {
+        if (infoVisible) document.getElementById('btn-info').click();
+        if (searchVisible) toggleSearch(false);
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', loadWallpapers);
+  </script>
+</body>
+</html>
