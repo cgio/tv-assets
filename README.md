@@ -82,3 +82,6 @@ Providing device is cloaked (confirm via no access to system menu), restore devi
 If Cloaked and Restore were upgraded or not available, migrate_stick.sh is backup:
 * `adb push ~/Downloads/migrate_stick.sh /data/local/tmp/`
 * `adb shell su -c "sh /data/local/tmp/migrate_stick.sh"`
+
+### 8. This Repo's Wallpaper Website
+* `https://cgio.github.io/tv-assets/wallpapers/`
