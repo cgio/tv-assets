@@ -162,15 +162,14 @@
       gap: var(--fib-55);
     }
 
-    /* Virtualized Card: WebKit skips offscreen subtrees completely */
+    /* Virtualized Card: Zero box-shadow for optimal GPU throughput */
     .image-slot {
       position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
       background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 70%), #131419;
-      border-radius: var(--fib-13);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      border-radius: var(--fib-8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -210,7 +209,7 @@
 
     .image-slot.armed {
       border-color: var(--glass-highlight);
-      box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
+      box-shadow: inset 0 0 0 2px var(--glass-highlight);
     }
 
     .image-slot.armed img {
@@ -525,7 +524,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.9.0</div>
+      <div class="splash-ver">v1.9.1</div>
     </div>
   </div>
 
@@ -579,6 +578,8 @@
     let armedIndex = null;
     let armLockTimer = null;
     let pruneTimer = null;
+    let isProgrammaticScroll = false;
+    let programmaticScrollTimer = null;
     const SLOTS = [];
 
     const sharedOverlay = document.getElementById('shared-action-overlay');
@@ -624,6 +625,36 @@
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
 
+    // Convert WebP to JPEG on-the-fly for iOS PhotoKit Wallpaper Picker compatibility
+    async function convertWebPToJpeg(blob, originalFilename) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(blob);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const jpegName = originalFilename.replace(/\.[^/.]+$/, '.jpg');
+          canvas.toBlob((jpegBlob) => {
+            if (jpegBlob) {
+              resolve(new File([jpegBlob], jpegName, { type: 'image/jpeg' }));
+            } else {
+              resolve(new File([blob], originalFilename, { type: 'image/webp' }));
+            }
+          }, 'image/jpeg', 0.98);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(new File([blob], originalFilename, { type: 'image/webp' }));
+        };
+        img.src = url;
+      });
+    }
+
+    // Direct Download & iOS Native Photos Saver
     async function triggerDownload(index) {
       const filename = wallpapers[index];
       if (!filename) return;
@@ -632,21 +663,21 @@
       try {
         const res = await fetch(rawUrl);
         const blob = await res.blob();
-        const file = new File([blob], filename, { type: 'image/webp' });
+        const file = await convertWebPToJpeg(blob, filename);
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: filename
+            title: file.name
           });
           showToast('Image Ready');
           return;
         }
 
-        const blobUrl = URL.createObjectURL(blob);
+        const blobUrl = URL.createObjectURL(file);
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = filename;
+        a.download = file.name;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -690,7 +721,7 @@
       });
     }
 
-    // O(1) Instant Disarm (Zero querySelectorAll overhead)
+    // O(1) Instant Disarm
     function disarmAllSlots() {
       if (armedIndex === null) return;
       clearTimeout(armLockTimer);
@@ -751,17 +782,24 @@
       showToast('Text Highlighted');
     });
 
+    // Programmatic centering with scroll-guard flag
     function scrollToSlot(targetSlot, smooth = true) {
       if (!targetSlot) return;
       const rect = targetSlot.getBoundingClientRect();
       const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+      if (smooth) {
+        isProgrammaticScroll = true;
+        clearTimeout(programmaticScrollTimer);
+        programmaticScrollTimer = setTimeout(() => {
+          isProgrammaticScroll = false;
+        }, 650);
+      }
       window.scrollTo({
         top: targetY,
         behavior: smooth ? 'smooth' : 'auto'
       });
     }
 
-    // 5-Texture VRAM Window Engine: Preload actively, prune strictly post-scroll
     function hydrateSlot(idx) {
       if (idx < 0 || idx >= wallpapers.length) return;
       const slot = SLOTS[idx];
@@ -777,7 +815,6 @@
       if (visibleIndices.length === 0) return;
       currentIndex = visibleIndices[centerPos];
 
-      // Immediately hydrate current card + 2 adjacent in each direction
       for (let offset = -2; offset <= 2; offset++) {
         const pos = centerPos + offset;
         if (pos >= 0 && pos < visibleIndices.length) {
@@ -789,7 +826,6 @@
     function schedulePostScrollPrune() {
       clearTimeout(pruneTimer);
       pruneTimer = setTimeout(() => {
-        // Prune only when finger & momentum scrolling are 100% idle
         const centerPos = visibleIndices.indexOf(currentIndex);
         if (centerPos === -1) return;
 
@@ -813,7 +849,6 @@
       }, 250);
     }
 
-    // Center Midpoint Target Observer
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
@@ -875,14 +910,12 @@
         centerObserver.observe(slot);
       });
 
-      // Delegated Instant Tap
       container.addEventListener('click', (e) => {
         const slot = e.target.closest('.image-slot');
         if (!slot || e.target.closest('#shared-action-overlay')) return;
         armSlot(slot._index);
       });
 
-      // Query Parameter Parsing (?i=56)
       const urlParams = new URLSearchParams(window.location.search);
       const paramI = urlParams.get('i');
       let initialPos;
@@ -914,13 +947,16 @@
       }, 750);
     }
 
-    // Zero-Cost Passive Scroll Listener
+    // Scroll listener: disarm only when scrolling is manual
     window.addEventListener('scroll', () => {
-      if (armedIndex !== null) disarmAllSlots();
+      if (armedIndex !== null && !isProgrammaticScroll) {
+        disarmAllSlots();
+      }
       schedulePostScrollPrune();
     }, { passive: true });
 
     document.addEventListener('pointerdown', (e) => {
+      isProgrammaticScroll = false;
       if (!e.target.closest('.image-slot')) disarmAllSlots();
     });
 
@@ -960,6 +996,7 @@
       showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
     });
 
+    // Active Card Action Trigger Button (✅)
     document.getElementById('btn-action').addEventListener('click', () => {
       if (armedIndex === currentIndex) {
         disarmAllSlots();
@@ -1005,6 +1042,7 @@
 
     window.addEventListener('resize', updateControlsOrientation);
 
+    // Desktop Drag Detection
     const navDock = document.getElementById('nav-dock');
     let isMouseDown = false;
     let dockStartX = 0;
@@ -1151,6 +1189,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.9.0 -->
+  <!-- 4K WALLPAPERS v1.9.1 -->
 </body>
 </html>
