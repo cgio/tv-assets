@@ -151,21 +151,25 @@
       gap: var(--fib-55);
     }
 
+    /* Dimmed Rest State for Gallery Cards */
     .image-slot {
       position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
       background: rgba(255, 255, 255, 0.02);
       border-radius: var(--fib-13);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: 0 var(--fib-13) var(--fib-34) rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: 0 var(--fib-8) var(--fib-21) rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       cursor: pointer;
       touch-action: pan-y;
-      transition: border-color 0.28s ease, box-shadow 0.28s ease;
+      opacity: 0.42;
+      transition: opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.38s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .image-slot img {
@@ -177,7 +181,8 @@
       color: transparent;
       font-size: 0;
       pointer-events: none;
-      transition: opacity 0.34s ease-in-out, filter 0.28s ease;
+      filter: brightness(0.68) saturate(88%);
+      transition: opacity 0.34s ease-in-out, filter 0.38s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .image-slot img.loaded {
@@ -185,13 +190,26 @@
       visibility: visible;
     }
 
+    /* Focused Current Card: Full Luminosity */
+    .image-slot.is-current {
+      opacity: 1;
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.75);
+    }
+
+    .image-slot.is-current img {
+      filter: brightness(1) saturate(100%);
+    }
+
+    /* Armed Card Overlay */
     .image-slot.armed {
+      opacity: 1;
       border-color: var(--glass-highlight);
       box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
     }
 
     .image-slot.armed img {
-      filter: brightness(0.65);
+      filter: brightness(0.65) !important;
     }
 
     /* Save Overlay Container */
@@ -646,6 +664,9 @@
       const activeWindow = new Set(visibleIndices.slice(lower, upper + 1));
 
       SLOTS.forEach((slot, idx) => {
+        // Organic Luminosity Toggle: Only current item receives full brightness
+        slot.classList.toggle('is-current', idx === currentIndex);
+
         const img = slot.querySelector('img');
         if (activeWindow.has(idx)) {
           if (!img.src || img.src === window.location.href) {
@@ -772,7 +793,6 @@
         }
       }
 
-      // Random fallback when ?i= is absent or invalid
       if (initialPos === undefined) {
         const randomStart = Math.floor(Math.random() * (wallpapers.length - 8)) + 4;
         initialPos = Math.max(0, Math.min(randomStart, wallpapers.length - 1));
@@ -836,7 +856,6 @@
       const btnHand = document.getElementById('btn-hand');
       const btnSearch = document.getElementById('btn-search');
 
-      // Right-docked: 🔍 | Left-docked: 🔎
       btnSearch.textContent = isLeftHanded ? '🔎' : '🔍';
 
       if (window.innerWidth <= 540) {
@@ -846,7 +865,6 @@
           btnHand.textContent = isCollapsed ? '👈🏼' : '👉🏼';
         }
       } else {
-        // Desktop horizontal ends
         btnHand.textContent = isLeftHanded ? '👉🏼' : '👈🏼';
       }
     }
@@ -870,7 +888,7 @@
 
     window.addEventListener('resize', updateControlsOrientation);
 
-    // Clean drag detection without setPointerCapture (fixes Firefox desktop button click suppression)
+    // Non-capturing drag detection for desktop browsers
     const navDock = document.getElementById('nav-dock');
     let isMouseDown = false;
     let dockStartX = 0;
@@ -1049,6 +1067,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.2.0 -->
+  <!-- 4K WALLPAPERS v1.3.0 -->
 </body>
 </html>
