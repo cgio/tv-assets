@@ -163,12 +163,12 @@
       gap: var(--fib-55);
     }
 
-    /* Pure Hardware-Accelerated Lightweight Card */
+    /* Hardware-Accelerated Lightweight Card Slot */
     .image-slot {
       position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
-      background: rgba(255, 255, 255, 0.03);
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 70%), #131419;
       border-radius: var(--fib-13);
       border: 1px solid rgba(255, 255, 255, 0.05);
       box-shadow: 0 var(--fib-13) var(--fib-34) rgba(0, 0, 0, 0.6);
@@ -182,13 +182,25 @@
       transition: border-color 0.21s ease, box-shadow 0.21s ease;
     }
 
+    .slot-num-tag {
+      position: absolute;
+      font-family: var(--font-body);
+      font-size: 1.15rem;
+      letter-spacing: var(--fib-2);
+      color: rgba(255, 255, 255, 0.20);
+      pointer-events: none;
+      z-index: 1;
+    }
+
     .image-slot img {
+      position: relative;
+      z-index: 2;
       width: 100%;
       height: 100%;
       object-fit: cover;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.34s ease-in-out;
+      transition: opacity 0.28s ease-in-out;
     }
 
     .image-slot img.loaded {
@@ -204,7 +216,7 @@
       filter: brightness(0.55);
     }
 
-    /* Single Reusable Floating Modal (Zero GPU Duplication) */
+    /* Single Reusable Floating Modal (Zero GPU Overhead) */
     #shared-action-overlay {
       position: absolute;
       inset: 0;
@@ -522,7 +534,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.7.0</div>
+      <div class="splash-ver">v1.8.0</div>
     </div>
   </div>
 
@@ -535,7 +547,7 @@
 
   <main id="gallery-container"></main>
 
-  <!-- Global Single Action Overlay (Attached to active card only when armed) -->
+  <!-- Global Single Action Overlay -->
   <div id="shared-action-overlay">
     <div class="slot-action-card">
       <div class="action-btn-row">
@@ -584,7 +596,7 @@
     const modalShareBtn = document.getElementById('modal-btn-share');
     const modalInfoBox = document.getElementById('modal-info-box');
 
-    // Procedural Background Noise
+    // Procedural Background Texture
     (function initOrganicTexture() {
       const canvas = document.getElementById('texture-canvas');
       const ctx = canvas.getContext('2d');
@@ -690,7 +702,7 @@
       });
     }
 
-    // Zero-Cost Single Overlay Arming
+    // Clean Modal Arming
     function disarmAllSlots() {
       clearTimeout(armLockTimer);
       if (armedIndex !== null && SLOTS[armedIndex]) {
@@ -726,10 +738,10 @@
       armLockTimer = setTimeout(() => {
         modalDlBtn.style.pointerEvents = 'auto';
         modalShareBtn.style.pointerEvents = 'auto';
-      }, 250);
+      }, 200);
     }
 
-    // Modal Action Bindings
+    // Modal Click Bindings
     sharedOverlay.addEventListener('click', (e) => e.stopPropagation());
     modalDlBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -762,25 +774,42 @@
       });
     }
 
-    // Robust Non-Destructive Lazy Loader (Preloads 1,000px ahead, never unloads cached images)
-    const lazyObserver = new IntersectionObserver((entries) => {
+    // 1600px Streaming Pipeline: Bounded VRAM with Async Off-Thread Decode
+    const streamObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
+        const slot = entry.target;
+        const img = slot.querySelector('img');
+        const file = wallpapers[slot._index];
+
         if (entry.isIntersecting) {
-          const img = entry.target;
-          if (img.dataset.src && !img.src) {
-            img.src = img.dataset.src;
-            img.onload = () => img.classList.add('loaded');
+          // Entering 1600px buffer: stream file & decode off-thread
+          if (!img.src || img.src === window.location.href) {
+            img.src = RAW_IMG_BASE + encodeURIComponent(file);
+            if (img.decode) {
+              img.decode().then(() => {
+                img.classList.add('loaded');
+              }).catch(() => {
+                img.classList.add('loaded');
+              });
+            } else {
+              img.onload = () => img.classList.add('loaded');
+            }
           }
-          lazyObserver.unobserve(img);
+        } else {
+          // Exiting 1600px buffer: release decoded 33MB surface immediately
+          if (img.src) {
+            img.classList.remove('loaded');
+            img.removeAttribute('src');
+          }
         }
       });
-    }, { rootMargin: '1000px 0px 1000px 0px' });
+    }, { rootMargin: '1600px 0px 1600px 0px' });
 
-    // Active Center Detection
+    // Active Center Target Tracker
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
-          currentIndex = parseInt(entry.target.dataset.index, 10);
+          currentIndex = entry.target._index;
         }
       });
     }, { rootMargin: '-35% 0px -35% 0px' });
@@ -811,33 +840,39 @@
       wallpapers.forEach((file, index) => {
         const slot = document.createElement('div');
         slot.className = 'image-slot';
+        slot._index = index;
         slot.dataset.index = index;
 
+        // Clean alt attribute
         const cleanAlt = file.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+
+        // Hardware Slot Identifier (visible during high-speed inertia before decode)
+        const numTag = document.createElement('span');
+        numTag.className = 'slot-num-tag';
+        numTag.textContent = `#${(index + 1).toLocaleString()}`;
 
         const img = document.createElement('img');
         img.alt = cleanAlt;
         img.decoding = 'async';
-        img.dataset.src = RAW_IMG_BASE + encodeURIComponent(file);
 
+        slot.appendChild(numTag);
         slot.appendChild(img);
         container.appendChild(slot);
         SLOTS.push(slot);
         visibleIndices.push(index);
 
-        lazyObserver.observe(img);
+        streamObserver.observe(slot);
         centerObserver.observe(slot);
       });
 
-      // Event Delegation: One listener replaces 1,500 individual slot listeners
+      // Event Delegation
       container.addEventListener('click', (e) => {
         const slot = e.target.closest('.image-slot');
         if (!slot || e.target.closest('#shared-action-overlay')) return;
-        const idx = parseInt(slot.dataset.index, 10);
-        armSlot(idx);
+        armSlot(slot._index);
       });
 
-      // Direct Query Parameter Parsing (?i=56)
+      // Query Parameter Parsing (?i=56)
       const urlParams = new URLSearchParams(window.location.search);
       const paramI = urlParams.get('i');
       let initialPos;
@@ -868,7 +903,7 @@
       }, 750);
     }
 
-    // Dismiss overlay on external scroll or click outside
+    // Dismiss overlay on scroll
     window.addEventListener('scroll', () => disarmAllSlots(), { passive: true });
     document.addEventListener('pointerdown', (e) => {
       if (!e.target.closest('.image-slot')) disarmAllSlots();
@@ -1099,6 +1134,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.7.0 -->
+  <!-- 4K WALLPAPERS v1.8.0 -->
 </body>
 </html>
