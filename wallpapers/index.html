@@ -52,7 +52,6 @@
       user-select: none;
     }
 
-    /* High-Contrast Golden-Yellow Selection */
     ::selection {
       background: var(--accent-yellow) !important;
       color: #0c0d10 !important;
@@ -163,7 +162,7 @@
       gap: var(--fib-55);
     }
 
-    /* Hardware-Accelerated Lightweight Card Slot */
+    /* Virtualized Card: WebKit skips offscreen subtrees completely */
     .image-slot {
       position: relative;
       width: 100%;
@@ -171,15 +170,17 @@
       background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 70%), #131419;
       border-radius: var(--fib-13);
       border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: 0 var(--fib-13) var(--fib-34) rgba(0, 0, 0, 0.6);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       cursor: pointer;
       touch-action: pan-y;
-      contain: layout paint;
-      transition: border-color 0.21s ease, box-shadow 0.21s ease;
+      content-visibility: auto;
+      contain-intrinsic-size: 100vw calc(100vw * 9 / 16);
+      contain: layout paint style;
+      transition: border-color 0.21s ease;
     }
 
     .slot-num-tag {
@@ -187,7 +188,7 @@
       font-family: var(--font-body);
       font-size: 1.15rem;
       letter-spacing: var(--fib-2);
-      color: rgba(255, 255, 255, 0.20);
+      color: rgba(255, 255, 255, 0.22);
       pointer-events: none;
       z-index: 1;
     }
@@ -216,7 +217,7 @@
       filter: brightness(0.55);
     }
 
-    /* Single Reusable Floating Modal (Zero GPU Overhead) */
+    /* Single Reusable Modal */
     #shared-action-overlay {
       position: absolute;
       inset: 0;
@@ -399,7 +400,6 @@
       cursor: grabbing;
     }
 
-    /* Dock Alignment */
     body.hand-right #nav-dock,
     body.hand-right .glass-pill {
       right: var(--fib-21);
@@ -412,8 +412,8 @@
       right: auto;
     }
 
-    /* Desktop Horizontal Ordering (6 buttons) */
-    /* Right-Docked: [ 👈🏼 ] [ 🔍 ] [ 🎲 ] [ ✅ ] [ ⬅️ ] [ ➡️ ] */
+    /* Desktop Ordering (6 buttons) */
+    /* Right: [ 👈🏼 ] [ 🔍 ] [ 🎲 ] [ ✅ ] [ ⬅️ ] [ ➡️ ] */
     body.hand-right #btn-hand   { order: 1; }
     body.hand-right #btn-search { order: 2; }
     body.hand-right #btn-random { order: 3; }
@@ -421,7 +421,7 @@
     body.hand-right #btn-prev   { order: 5; }
     body.hand-right #btn-next   { order: 6; }
 
-    /* Left-Docked: [ ⬅️ ] [ ➡️ ] [ ✅ ] [ 🎲 ] [ 🔎 ] [ 👉🏼 ] */
+    /* Left: [ ⬅️ ] [ ➡️ ] [ ✅ ] [ 🎲 ] [ 🔎 ] [ 👉🏼 ] */
     body.hand-left #btn-prev   { order: 1; }
     body.hand-left #btn-next   { order: 2; }
     body.hand-left #btn-action { order: 3; }
@@ -478,7 +478,7 @@
       transform: translateY(0);
     }
 
-    /* --- Responsive Mobile Viewports (<= 540px, 3x2 Grid) --- */
+    /* Responsive Mobile (<= 540px, 3x2 Grid) */
     @media (max-width: 540px) {
       :root {
         --nav-dock-height: calc((var(--nav-btn-size) * 2) + var(--fib-8) + (var(--nav-pad) * 2) + 2px);
@@ -492,31 +492,22 @@
         overflow: hidden;
       }
 
-      /* Right-Docked Grid */
-      body.hand-right #nav-dock {
-        justify-content: end;
-      }
+      body.hand-right #nav-dock { justify-content: end; }
       body.hand-right #btn-search { grid-column: 1; grid-row: 1; }
       body.hand-right #btn-random { grid-column: 2; grid-row: 1; }
       body.hand-right #btn-hand   { grid-column: 3; grid-row: 1; }
-
       body.hand-right #btn-prev   { grid-column: 1; grid-row: 2; }
       body.hand-right #btn-next   { grid-column: 2; grid-row: 2; }
       body.hand-right #btn-action { grid-column: 3; grid-row: 2; }
 
-      /* Left-Docked Grid */
-      body.hand-left #nav-dock {
-        justify-content: start;
-      }
+      body.hand-left #nav-dock { justify-content: start; }
       body.hand-left #btn-hand   { grid-column: 1; grid-row: 1; }
       body.hand-left #btn-random { grid-column: 2; grid-row: 1; }
       body.hand-left #btn-search { grid-column: 3; grid-row: 1; }
-
       body.hand-left #btn-action { grid-column: 1; grid-row: 2; }
       body.hand-left #btn-prev   { grid-column: 2; grid-row: 2; }
       body.hand-left #btn-next   { grid-column: 3; grid-row: 2; }
 
-      /* Mobile XS Collapsed: Exactly 1 column width */
       body.dock-collapsed #nav-dock {
         width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
       }
@@ -534,7 +525,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.8.0</div>
+      <div class="splash-ver">v1.9.0</div>
     </div>
   </div>
 
@@ -547,7 +538,6 @@
 
   <main id="gallery-container"></main>
 
-  <!-- Global Single Action Overlay -->
   <div id="shared-action-overlay">
     <div class="slot-action-card">
       <div class="action-btn-row">
@@ -588,9 +578,9 @@
     let diceDegrees = 0;
     let armedIndex = null;
     let armLockTimer = null;
+    let pruneTimer = null;
     const SLOTS = [];
 
-    // Shared Single Overlay Elements
     const sharedOverlay = document.getElementById('shared-action-overlay');
     const modalDlBtn = document.getElementById('modal-btn-download');
     const modalShareBtn = document.getElementById('modal-btn-share');
@@ -634,7 +624,6 @@
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
 
-    // Direct Download & iOS Native Sheet Interception
     async function triggerDownload(index) {
       const filename = wallpapers[index];
       if (!filename) return;
@@ -676,7 +665,6 @@
       }
     }
 
-    // Web Share API + Clipboard Fallback
     async function triggerShare(index) {
       const shareUrl = `${window.location.origin}${window.location.pathname}?i=${index + 1}`;
       const shareData = {
@@ -702,10 +690,11 @@
       });
     }
 
-    // Clean Modal Arming
+    // O(1) Instant Disarm (Zero querySelectorAll overhead)
     function disarmAllSlots() {
+      if (armedIndex === null) return;
       clearTimeout(armLockTimer);
-      if (armedIndex !== null && SLOTS[armedIndex]) {
+      if (SLOTS[armedIndex]) {
         SLOTS[armedIndex].classList.remove('armed');
       }
       sharedOverlay.classList.remove('visible');
@@ -741,7 +730,6 @@
       }, 200);
     }
 
-    // Modal Click Bindings
     sharedOverlay.addEventListener('click', (e) => e.stopPropagation());
     modalDlBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -763,7 +751,6 @@
       showToast('Text Highlighted');
     });
 
-    // Centering Calculation
     function scrollToSlot(targetSlot, smooth = true) {
       if (!targetSlot) return;
       const rect = targetSlot.getBoundingClientRect();
@@ -774,42 +761,67 @@
       });
     }
 
-    // 1600px Streaming Pipeline: Bounded VRAM with Async Off-Thread Decode
-    const streamObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const slot = entry.target;
-        const img = slot.querySelector('img');
-        const file = wallpapers[slot._index];
+    // 5-Texture VRAM Window Engine: Preload actively, prune strictly post-scroll
+    function hydrateSlot(idx) {
+      if (idx < 0 || idx >= wallpapers.length) return;
+      const slot = SLOTS[idx];
+      if (!slot) return;
+      const img = slot._img;
+      if (!img.src || img.src === window.location.href) {
+        img.src = RAW_IMG_BASE + encodeURIComponent(wallpapers[idx]);
+        img.onload = () => img.classList.add('loaded');
+      }
+    }
 
-        if (entry.isIntersecting) {
-          // Entering 1600px buffer: stream file & decode off-thread
-          if (!img.src || img.src === window.location.href) {
-            img.src = RAW_IMG_BASE + encodeURIComponent(file);
-            if (img.decode) {
-              img.decode().then(() => {
-                img.classList.add('loaded');
-              }).catch(() => {
-                img.classList.add('loaded');
-              });
-            } else {
-              img.onload = () => img.classList.add('loaded');
-            }
-          }
-        } else {
-          // Exiting 1600px buffer: release decoded 33MB surface immediately
-          if (img.src) {
-            img.classList.remove('loaded');
-            img.removeAttribute('src');
+    function updateActiveWindow(centerPos) {
+      if (visibleIndices.length === 0) return;
+      currentIndex = visibleIndices[centerPos];
+
+      // Immediately hydrate current card + 2 adjacent in each direction
+      for (let offset = -2; offset <= 2; offset++) {
+        const pos = centerPos + offset;
+        if (pos >= 0 && pos < visibleIndices.length) {
+          hydrateSlot(visibleIndices[pos]);
+        }
+      }
+    }
+
+    function schedulePostScrollPrune() {
+      clearTimeout(pruneTimer);
+      pruneTimer = setTimeout(() => {
+        // Prune only when finger & momentum scrolling are 100% idle
+        const centerPos = visibleIndices.indexOf(currentIndex);
+        if (centerPos === -1) return;
+
+        const keepWindow = new Set();
+        for (let offset = -2; offset <= 2; offset++) {
+          const pos = centerPos + offset;
+          if (pos >= 0 && pos < visibleIndices.length) {
+            keepWindow.add(visibleIndices[pos]);
           }
         }
-      });
-    }, { rootMargin: '1600px 0px 1600px 0px' });
 
-    // Active Center Target Tracker
+        visibleIndices.forEach(idx => {
+          if (!keepWindow.has(idx)) {
+            const slot = SLOTS[idx];
+            if (slot && slot._img && slot._img.src) {
+              slot._img.classList.remove('loaded');
+              slot._img.removeAttribute('src');
+            }
+          }
+        });
+      }, 250);
+    }
+
+    // Center Midpoint Target Observer
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
-          currentIndex = entry.target._index;
+          const slotIdx = entry.target._index;
+          const vPos = visibleIndices.indexOf(slotIdx);
+          if (vPos !== -1) {
+            updateActiveWindow(vPos);
+          }
         }
       });
     }, { rootMargin: '-35% 0px -35% 0px' });
@@ -843,10 +855,8 @@
         slot._index = index;
         slot.dataset.index = index;
 
-        // Clean alt attribute
         const cleanAlt = file.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
 
-        // Hardware Slot Identifier (visible during high-speed inertia before decode)
         const numTag = document.createElement('span');
         numTag.className = 'slot-num-tag';
         numTag.textContent = `#${(index + 1).toLocaleString()}`;
@@ -854,6 +864,7 @@
         const img = document.createElement('img');
         img.alt = cleanAlt;
         img.decoding = 'async';
+        slot._img = img;
 
         slot.appendChild(numTag);
         slot.appendChild(img);
@@ -861,11 +872,10 @@
         SLOTS.push(slot);
         visibleIndices.push(index);
 
-        streamObserver.observe(slot);
         centerObserver.observe(slot);
       });
 
-      // Event Delegation
+      // Delegated Instant Tap
       container.addEventListener('click', (e) => {
         const slot = e.target.closest('.image-slot');
         if (!slot || e.target.closest('#shared-action-overlay')) return;
@@ -890,6 +900,7 @@
       }
 
       currentIndex = initialPos;
+      updateActiveWindow(visibleIndices.indexOf(initialPos));
       scrollToSlot(SLOTS[initialPos], false);
       updateControlsOrientation();
 
@@ -903,8 +914,12 @@
       }, 750);
     }
 
-    // Dismiss overlay on scroll
-    window.addEventListener('scroll', () => disarmAllSlots(), { passive: true });
+    // Zero-Cost Passive Scroll Listener
+    window.addEventListener('scroll', () => {
+      if (armedIndex !== null) disarmAllSlots();
+      schedulePostScrollPrune();
+    }, { passive: true });
+
     document.addEventListener('pointerdown', (e) => {
       if (!e.target.closest('.image-slot')) disarmAllSlots();
     });
@@ -917,7 +932,9 @@
       disarmAllSlots();
       const targetIdx = visibleIndices[vPos];
       currentIndex = targetIdx;
+      updateActiveWindow(vPos);
       scrollToSlot(SLOTS[targetIdx], true);
+      schedulePostScrollPrune();
     }
 
     document.getElementById('btn-prev').addEventListener('click', () => {
@@ -943,7 +960,6 @@
       showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
     });
 
-    // Active Card Action Trigger Button (✅)
     document.getElementById('btn-action').addEventListener('click', () => {
       if (armedIndex === currentIndex) {
         disarmAllSlots();
@@ -989,7 +1005,6 @@
 
     window.addEventListener('resize', updateControlsOrientation);
 
-    // Desktop Drag Detection
     const navDock = document.getElementById('nav-dock');
     let isMouseDown = false;
     let dockStartX = 0;
@@ -1053,9 +1068,11 @@
           SLOTS[idx].style.display = 'flex';
         });
         currentIndex = targetIdx;
+        updateActiveWindow(visibleIndices.indexOf(targetIdx));
         scrollToSlot(SLOTS[targetIdx], true);
         showToast(`Wallpaper #${num.toLocaleString()}`);
         toggleSearch(false);
+        schedulePostScrollPrune();
       } else {
         showToast(`Out of range (1–${wallpapers.length.toLocaleString()})`);
       }
@@ -1134,6 +1151,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.8.0 -->
+  <!-- 4K WALLPAPERS v1.9.0 -->
 </body>
 </html>
