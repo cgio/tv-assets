@@ -34,7 +34,7 @@
       --nav-dock-height: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
       --info-dock-gap: var(--fib-13);
 
-      --glass-bg: rgba(18, 18, 22, 0.72);
+      --glass-bg: rgba(18, 18, 22, 0.76);
       --glass-border: rgba(255, 255, 255, 0.13);
       --glass-highlight: rgba(255, 255, 255, 0.34);
       --glass-shadow: 0 var(--fib-8) var(--fib-34) rgba(0, 0, 0, 0.65);
@@ -83,7 +83,7 @@
       opacity: 0.45;
     }
 
-    /* Viewport Vignette: Organic Edge Depth Falloff */
+    /* Viewport Vignette */
     #vignette-overlay {
       position: fixed;
       inset: 0;
@@ -202,17 +202,17 @@
       visibility: visible;
     }
 
-    /* Armed Card Overlay */
+    /* Armed Card */
     .image-slot.armed {
       border-color: var(--glass-highlight);
       box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
     }
 
     .image-slot.armed img {
-      filter: brightness(0.65) !important;
+      filter: brightness(0.60) !important;
     }
 
-    /* Save Overlay Container */
+    /* Armed Overlay Container */
     .slot-action-overlay {
       position: absolute;
       inset: 0;
@@ -225,6 +225,7 @@
       transition: opacity 0.21s cubic-bezier(0.16, 1, 0.3, 1), transform 0.21s cubic-bezier(0.16, 1, 0.3, 1);
       transform: scale(0.92);
       z-index: 10;
+      padding: var(--fib-13);
     }
 
     .image-slot.armed .slot-action-overlay {
@@ -233,17 +234,34 @@
       transform: scale(1);
     }
 
-    /* Save Badge */
-    .btn-slot-download {
+    /* Action Modal Card: Natural Fibonacci Geometry */
+    .slot-action-card {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: var(--fib-13);
+      max-width: 100%;
+    }
+
+    .action-btn-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--fib-13);
+    }
+
+    .btn-slot-action {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--fib-8);
       background: var(--glass-bg);
       border: 1px solid var(--glass-highlight);
       border-radius: var(--fib-21);
-      padding: var(--fib-13) var(--fib-34);
+      padding: var(--fib-13) var(--fib-21);
+      min-width: var(--fib-89);
       backdrop-filter: blur(var(--fib-21));
       -webkit-backdrop-filter: blur(var(--fib-21));
       box-shadow: var(--glass-shadow);
@@ -252,20 +270,20 @@
       transition: transform 0.13s ease, background 0.13s ease;
     }
 
-    .btn-slot-download:active {
+    .btn-slot-action:active {
       transform: scale(0.94);
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.22);
     }
 
-    .btn-slot-download .save-emoji {
-      font-size: 2.2rem;
+    .btn-slot-action .action-emoji {
+      font-size: 2rem;
       line-height: 1;
       display: block;
     }
 
-    .btn-slot-download .save-label {
+    .btn-slot-action .action-label {
       font-family: var(--font-body);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       letter-spacing: var(--fib-2);
       color: #ffffff;
       text-transform: uppercase;
@@ -277,7 +295,32 @@
       justify-content: center;
     }
 
-    /* Glass Overlays */
+    /* In-Card Info Pill */
+    .slot-info-box {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(var(--fib-21));
+      -webkit-backdrop-filter: blur(var(--fib-21));
+      border-radius: var(--fib-13);
+      box-shadow: var(--glass-shadow);
+      padding: var(--fib-8) var(--fib-13);
+      font-size: 0.82rem;
+      letter-spacing: 0.5px;
+      color: #e5e5ea;
+      max-width: min(calc(100vw - var(--fib-55)), var(--fib-610));
+      word-break: break-all;
+      user-select: text;
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.3;
+      transition: border-color 0.21s ease;
+    }
+
+    .slot-info-box:hover {
+      border-color: var(--glass-highlight);
+    }
+
+    /* Glass Search Drawer */
     .glass-pill {
       position: fixed;
       bottom: calc(var(--fib-21) + var(--nav-dock-height) + var(--info-dock-gap) + env(safe-area-inset-bottom));
@@ -302,13 +345,6 @@
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
-    }
-
-    #info-pill {
-      padding: var(--fib-8) var(--fib-13);
-      word-break: break-all;
-      user-select: text;
-      cursor: pointer;
     }
 
     #search-box {
@@ -382,19 +418,19 @@
     }
 
     /* Desktop Horizontal Ordering */
-    /* Right-Docked: [ ⬅️ ] [ ➡️ ] [ 💾 ] [ 🎲 ] [ 🔍 ] [ 📋 ] [ ℹ️ ] [ 👈🏼 ] */
+    /* Right-Docked: [ ⬅️ ] [ ➡️ ] [ 💾 ] [ 🎲 ] [ 🔍 ] [ 📋 ] [ 🔗 ] [ 👈🏼 ] */
     body.hand-right #btn-prev   { order: 1; }
     body.hand-right #btn-next   { order: 2; }
     body.hand-right #btn-save   { order: 3; }
     body.hand-right #btn-random { order: 4; }
     body.hand-right #btn-search { order: 5; }
     body.hand-right #btn-copy   { order: 6; }
-    body.hand-right #btn-info   { order: 7; }
+    body.hand-right #btn-share  { order: 7; }
     body.hand-right #btn-hand   { order: 8; }
 
-    /* Left-Docked: [ 👉🏼 ] [ ℹ️ ] [ 📋 ] [ 🔎 ] [ 🎲 ] [ 💾 ] [ ⬅️ ] [ ➡️ ] */
+    /* Left-Docked: [ 👉🏼 ] [ 🔗 ] [ 📋 ] [ 🔎 ] [ 🎲 ] [ 💾 ] [ ⬅️ ] [ ➡️ ] */
     body.hand-left #btn-hand   { order: 1; }
-    body.hand-left #btn-info   { order: 2; }
+    body.hand-left #btn-share  { order: 2; }
     body.hand-left #btn-copy   { order: 3; }
     body.hand-left #btn-search { order: 4; }
     body.hand-left #btn-random { order: 5; }
@@ -466,12 +502,12 @@
       }
 
       /* Right-Docked Grid:
-         Row 1: ℹ️ 📋 🔍 👉🏼
+         Row 1: 🔗 📋 🔍 👉🏼
          Row 2: 🎲 ⬅️ ➡️ 💾 */
       body.hand-right #nav-dock {
         justify-content: end;
       }
-      body.hand-right #btn-info   { grid-column: 1; grid-row: 1; }
+      body.hand-right #btn-share  { grid-column: 1; grid-row: 1; }
       body.hand-right #btn-copy   { grid-column: 2; grid-row: 1; }
       body.hand-right #btn-search { grid-column: 3; grid-row: 1; }
       body.hand-right #btn-hand   { grid-column: 4; grid-row: 1; }
@@ -482,7 +518,7 @@
       body.hand-right #btn-save   { grid-column: 4; grid-row: 2; }
 
       /* Left-Docked Grid:
-         Row 1: 👈🏼 🔎 📋 ℹ️
+         Row 1: 👈🏼 🔎 📋 🔗
          Row 2: 💾 ⬅️ ➡️ 🎲 */
       body.hand-left #nav-dock {
         justify-content: start;
@@ -490,7 +526,7 @@
       body.hand-left #btn-hand   { grid-column: 1; grid-row: 1; }
       body.hand-left #btn-search { grid-column: 2; grid-row: 1; }
       body.hand-left #btn-copy   { grid-column: 3; grid-row: 1; }
-      body.hand-left #btn-info   { grid-column: 4; grid-row: 1; }
+      body.hand-left #btn-share  { grid-column: 4; grid-row: 1; }
 
       body.hand-left #btn-save   { grid-column: 1; grid-row: 2; }
       body.hand-left #btn-prev   { grid-column: 2; grid-row: 2; }
@@ -520,8 +556,6 @@
 
   <div id="toast">Notification</div>
 
-  <div id="info-pill" class="glass-pill" title="Click to highlight text">#1 | ...</div>
-
   <div id="search-box" class="glass-pill">
     <input type="text" id="search-input" placeholder="Filter by name or go directly; e.g. #33" autocomplete="off" spellcheck="false">
     <button id="btn-search-clear" aria-label="Clear & Close Search">✕</button>
@@ -532,7 +566,7 @@
   <nav id="nav-dock">
     <button class="nav-btn" id="btn-hand" aria-label="Toggle Navigation Tray">👈🏼</button>
     <button class="nav-btn" id="btn-search" aria-label="Search Collection">🔍</button>
-    <button class="nav-btn" id="btn-info" aria-label="Toggle File Info">ℹ️</button>
+    <button class="nav-btn" id="btn-share" aria-label="Share Link">🔗</button>
     <button class="nav-btn" id="btn-copy" aria-label="Copy URL">📋</button>
     <button class="nav-btn" id="btn-save" aria-label="Download Wallpaper">💾</button>
     <button class="nav-btn" id="btn-random" aria-label="Random Wallpaper"><span class="dice-icon" id="dice">🎲</span></button>
@@ -551,7 +585,6 @@
     let currentIndex = 0;
     let isLeftHanded = false;
     let isCollapsed = true;
-    let infoVisible = false;
     let searchVisible = false;
     let diceDegrees = 0;
     let armedIndex = null;
@@ -595,6 +628,7 @@
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
 
+    // Direct Blob Fetch for 4K Download
     async function triggerDownload(index) {
       const filename = wallpapers[index];
       if (!filename) return;
@@ -622,6 +656,32 @@
       }
     }
 
+    // Web Share API + Clipboard Fallback to Maximize ?i=X URL
+    async function triggerShare(index) {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?i=${index + 1}`;
+      const shareData = {
+        title: `4K Wallpaper #${(index + 1).toLocaleString()}`,
+        text: `4K Wallpaper #${(index + 1).toLocaleString()}`,
+        url: shareUrl
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          showToast('Shared');
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+        }
+      }
+
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast('Share Link Copied');
+      }).catch(() => {
+        showToast('Clipboard access denied');
+      });
+    }
+
     function disarmAllSlots() {
       if (armLockTimer) {
         clearTimeout(armLockTimer);
@@ -630,8 +690,7 @@
       document.querySelectorAll('.image-slot.armed').forEach(slot => {
         slot.classList.remove('armed');
         slot.dataset.armedAt = '0';
-        const dlBtn = slot.querySelector('.btn-slot-download');
-        if (dlBtn) dlBtn.style.pointerEvents = 'none';
+        slot.querySelectorAll('.btn-slot-action').forEach(btn => btn.style.pointerEvents = 'none');
       });
       armedIndex = null;
     }
@@ -644,15 +703,14 @@
         armedIndex = index;
         const now = Date.now();
         slot.dataset.armedAt = String(now);
-        const dlBtn = slot.querySelector('.btn-slot-download');
-        if (dlBtn) {
-          dlBtn.style.pointerEvents = 'none';
-          armLockTimer = setTimeout(() => {
-            if (armedIndex === index && slot.classList.contains('armed') && slot.dataset.armedAt === String(now)) {
-              dlBtn.style.pointerEvents = 'auto';
-            }
-          }, 450);
-        }
+        const actionBtns = slot.querySelectorAll('.btn-slot-action');
+        actionBtns.forEach(btn => btn.style.pointerEvents = 'none');
+
+        armLockTimer = setTimeout(() => {
+          if (armedIndex === index && slot.classList.contains('armed') && slot.dataset.armedAt === String(now)) {
+            actionBtns.forEach(btn => btn.style.pointerEvents = 'auto');
+          }
+        }, 450);
       }
     }
 
@@ -678,12 +736,9 @@
           }
         }
       });
-
-      const activeFile = wallpapers[currentIndex] || '';
-      document.getElementById('info-pill').textContent = `#${(currentIndex + 1).toLocaleString()} | ${activeFile}`;
     }
 
-    // Viewport Centering Engine: Evaluates candidate cards by distance from exact viewport midpoint
+    // Midpoint Viewport Centering Observer
     const inViewSlots = new Set();
     let scrollTick = false;
 
@@ -759,12 +814,21 @@
         img.alt = file;
         img.loading = 'eager';
 
+        // Action Overlay with [ SAVE ] [ SHARE ] and [ INFO ]
         const overlay = document.createElement('div');
         overlay.className = 'slot-action-overlay';
 
-        const dlBtn = document.createElement('div');
-        dlBtn.className = 'btn-slot-download';
-        dlBtn.innerHTML = '<span class="save-emoji">💾</span><span class="save-label">SAVE</span>';
+        const actionCard = document.createElement('div');
+        actionCard.className = 'slot-action-card';
+
+        // Top Row: [ SAVE ] [ SHARE ]
+        const btnRow = document.createElement('div');
+        btnRow.className = 'action-btn-row';
+
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'btn-slot-action btn-slot-download';
+        dlBtn.setAttribute('aria-label', 'Download Wallpaper');
+        dlBtn.innerHTML = '<span class="action-emoji">💾</span><span class="action-label">SAVE</span>';
 
         dlBtn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -777,7 +841,45 @@
           disarmAllSlots();
         });
 
-        overlay.appendChild(dlBtn);
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'btn-slot-action btn-slot-share';
+        shareBtn.setAttribute('aria-label', 'Share Wallpaper Link');
+        shareBtn.innerHTML = '<span class="action-emoji">🔗</span><span class="action-label">SHARE</span>';
+
+        shareBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const armedAt = parseInt(slot.dataset.armedAt || '0', 10);
+          if (Date.now() - armedAt < 450) {
+            e.preventDefault();
+            return;
+          }
+          triggerShare(index);
+          disarmAllSlots();
+        });
+
+        btnRow.appendChild(dlBtn);
+        btnRow.appendChild(shareBtn);
+
+        // Bottom Area: [ INFO FIELD ]
+        const infoBox = document.createElement('div');
+        infoBox.className = 'slot-info-box';
+        infoBox.title = 'Click to highlight text';
+        infoBox.textContent = `#${(index + 1).toLocaleString()} | ${file}`;
+
+        infoBox.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const sel = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(infoBox);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          showToast('Text Highlighted');
+        });
+
+        actionCard.appendChild(btnRow);
+        actionCard.appendChild(infoBox);
+        overlay.appendChild(actionCard);
+
         slot.appendChild(img);
         slot.appendChild(overlay);
 
@@ -812,7 +914,7 @@
         viewportObserver.observe(slot);
       });
 
-      // GET Parameter Direct Index Parsing (?i=56)
+      // GET Parameter Parsing (?i=56)
       const urlParams = new URLSearchParams(window.location.search);
       const paramI = urlParams.get('i');
       let initialPos;
@@ -843,7 +945,7 @@
       }, 750);
     }
 
-    // Scroll Listener: Disarms slots and recalibrates active center focus on each animation frame
+    // Scroll Observer
     window.addEventListener('scroll', () => {
       disarmAllSlots();
       if (!scrollTick) {
@@ -894,6 +996,11 @@
       showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
     });
 
+    // Nav Dock Share Button
+    document.getElementById('btn-share').addEventListener('click', () => {
+      triggerShare(currentIndex);
+    });
+
     function updateControlsOrientation() {
       const btnHand = document.getElementById('btn-hand');
       const btnSearch = document.getElementById('btn-search');
@@ -930,7 +1037,7 @@
 
     window.addEventListener('resize', updateControlsOrientation);
 
-    // Non-capturing drag detection for desktop browsers
+    // Non-capturing Desktop Drag
     const navDock = document.getElementById('nav-dock');
     let isMouseDown = false;
     let dockStartX = 0;
@@ -973,32 +1080,12 @@
       }
     }, true);
 
-    const infoPill = document.getElementById('info-pill');
-    document.getElementById('btn-info').addEventListener('click', () => {
-      infoVisible = !infoVisible;
-      if (infoVisible && searchVisible) toggleSearch(false);
-      infoPill.classList.toggle('visible', infoVisible);
-    });
-
-    infoPill.addEventListener('click', () => {
-      const selection = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(infoPill);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      showToast('Text Highlighted');
-    });
-
     const searchBox = document.getElementById('search-box');
     const searchInput = document.getElementById('search-input');
     const searchBtn = document.getElementById('btn-search');
 
     function toggleSearch(show) {
       searchVisible = show !== undefined ? show : !searchVisible;
-      if (searchVisible && infoVisible) {
-        infoVisible = false;
-        infoPill.classList.remove('visible');
-      }
       searchBox.classList.toggle('visible', searchVisible);
       if (searchVisible) searchInput.focus();
       else searchInput.blur();
@@ -1101,7 +1188,6 @@
         e.preventDefault();
         toggleSearch(true);
       } else if (e.key === 'Escape') {
-        if (infoVisible) document.getElementById('btn-info').click();
         if (searchVisible) toggleSearch(false);
         disarmAllSlots();
       }
@@ -1109,6 +1195,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.3.2 -->
+  <!-- 4K WALLPAPERS v1.4.0 -->
 </body>
 </html>
