@@ -209,7 +209,7 @@
       transform: scale(1);
     }
 
-    /* Save Badge: Default pointer-events: none prevents ghost clicks */
+    /* Save Badge */
     .btn-slot-download {
       display: flex;
       flex-direction: column;
@@ -344,7 +344,7 @@
       cursor: grabbing;
     }
 
-    /* Dock Positions */
+    /* Dock Alignment */
     body.hand-right #nav-dock,
     body.hand-right .glass-pill {
       right: var(--fib-21);
@@ -358,16 +358,17 @@
     }
 
     /* Desktop Horizontal Ordering */
+    /* Right Desktop: 👉🏼 ℹ️ 📋 🔍 🎲 💾 ⬅️ ➡️ */
     body.hand-right #btn-hand   { order: 1; }
-    body.hand-right #btn-search { order: 2; }
-    body.hand-right #btn-info   { order: 3; }
-    body.hand-right #btn-copy   { order: 4; }
-    body.hand-right #btn-save   { order: 5; }
-    body.hand-right #btn-random { order: 6; }
+    body.hand-right #btn-info   { order: 2; }
+    body.hand-right #btn-copy   { order: 3; }
+    body.hand-right #btn-search { order: 4; }
+    body.hand-right #btn-random { order: 5; }
+    body.hand-right #btn-save   { order: 6; }
     body.hand-right #btn-prev   { order: 7; }
     body.hand-right #btn-next   { order: 8; }
 
-    /* Left-handed Desktop: Mirrored order */
+    /* Left Desktop: ⬅️ ➡️ 🎲 💾 ℹ️ 📋 🔎 👈🏼 */
     body.hand-left #btn-prev   { order: 1; }
     body.hand-left #btn-next   { order: 2; }
     body.hand-left #btn-random { order: 3; }
@@ -440,31 +441,37 @@
         overflow: hidden;
       }
 
-      /* Right-handed Grid: Anchored right */
+      /* Right-handed Grid: Anchored right
+         Row 1: ℹ️ 📋 🔍 👉🏼
+         Row 2: 🎲 ⬅️ ➡️ 💾 */
       body.hand-right #nav-dock {
         justify-content: end;
       }
-      body.hand-right #btn-hand   { grid-column: 4; grid-row: 1; }
-      body.hand-right #btn-save   { grid-column: 4; grid-row: 2; }
-      body.hand-right #btn-search { grid-column: 3; grid-row: 1; }
-      body.hand-right #btn-random { grid-column: 3; grid-row: 2; }
-      body.hand-right #btn-copy   { grid-column: 2; grid-row: 1; }
-      body.hand-right #btn-next   { grid-column: 2; grid-row: 2; }
       body.hand-right #btn-info   { grid-column: 1; grid-row: 1; }
-      body.hand-right #btn-prev   { grid-column: 1; grid-row: 2; }
+      body.hand-right #btn-copy   { grid-column: 2; grid-row: 1; }
+      body.hand-right #btn-search { grid-column: 3; grid-row: 1; }
+      body.hand-right #btn-hand   { grid-column: 4; grid-row: 1; }
 
-      /* Left-handed Grid: Anchored left: [👈🏼][🔎][📋][ℹ️] on Row 1 */
+      body.hand-right #btn-random { grid-column: 1; grid-row: 2; }
+      body.hand-right #btn-prev   { grid-column: 2; grid-row: 2; }
+      body.hand-right #btn-next   { grid-column: 3; grid-row: 2; }
+      body.hand-right #btn-save   { grid-column: 4; grid-row: 2; }
+
+      /* Left-handed Grid: Anchored left
+         Row 1: 👈🏼 🔎 📋 ℹ️
+         Row 2: 💾 ⬅️ ➡️ 🎲 */
       body.hand-left #nav-dock {
         justify-content: start;
       }
       body.hand-left #btn-hand   { grid-column: 1; grid-row: 1; }
-      body.hand-left #btn-save   { grid-column: 1; grid-row: 2; }
       body.hand-left #btn-search { grid-column: 2; grid-row: 1; }
-      body.hand-left #btn-random { grid-column: 2; grid-row: 2; }
       body.hand-left #btn-copy   { grid-column: 3; grid-row: 1; }
-      body.hand-left #btn-prev   { grid-column: 3; grid-row: 2; }
       body.hand-left #btn-info   { grid-column: 4; grid-row: 1; }
-      body.hand-left #btn-next   { grid-column: 4; grid-row: 2; }
+
+      body.hand-left #btn-save   { grid-column: 1; grid-row: 2; }
+      body.hand-left #btn-prev   { grid-column: 2; grid-row: 2; }
+      body.hand-left #btn-next   { grid-column: 3; grid-row: 2; }
+      body.hand-left #btn-random { grid-column: 4; grid-row: 2; }
 
       body.dock-collapsed #nav-dock {
         width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
@@ -563,7 +570,6 @@
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
 
-    // Direct Blob Fetch: Guarantees authentic file download across mobile browsers
     async function triggerDownload(index) {
       const filename = wallpapers[index];
       if (!filename) return;
@@ -591,23 +597,21 @@
       }
     }
 
-    function disarmCurrentSlot() {
+    function disarmAllSlots() {
       if (armLockTimer) {
         clearTimeout(armLockTimer);
         armLockTimer = null;
       }
-      if (armedIndex !== null && SLOTS[armedIndex]) {
-        const slot = SLOTS[armedIndex];
+      document.querySelectorAll('.image-slot.armed').forEach(slot => {
         slot.classList.remove('armed');
         const dlBtn = slot.querySelector('.btn-slot-download');
         if (dlBtn) dlBtn.style.pointerEvents = 'none';
-        armedIndex = null;
-      }
+      });
+      armedIndex = null;
     }
 
     function armSlot(index) {
-      if (armedIndex === index) return;
-      disarmCurrentSlot();
+      disarmAllSlots();
       const slot = SLOTS[index];
       if (slot) {
         slot.classList.add('armed');
@@ -615,9 +619,8 @@
         const dlBtn = slot.querySelector('.btn-slot-download');
         if (dlBtn) {
           dlBtn.style.pointerEvents = 'none';
-          // 450ms lockout completely prevents synthetic click triggers
           armLockTimer = setTimeout(() => {
-            if (armedIndex === index) {
+            if (armedIndex === index && slot.classList.contains('armed')) {
               dlBtn.style.pointerEvents = 'auto';
             }
           }, 450);
@@ -704,7 +707,7 @@
         dlBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           triggerDownload(index);
-          disarmCurrentSlot();
+          disarmAllSlots();
         });
 
         overlay.appendChild(dlBtn);
@@ -727,10 +730,10 @@
           }
         });
 
-        slot.addEventListener('click', (e) => {
+        slot.addEventListener('click', () => {
           if (isSlotDrag) return;
           if (armedIndex === index) {
-            disarmCurrentSlot();
+            disarmAllSlots();
           } else {
             armSlot(index);
           }
@@ -759,9 +762,9 @@
       }, 750);
     }
 
-    window.addEventListener('scroll', () => disarmCurrentSlot(), { passive: true });
+    window.addEventListener('scroll', () => disarmAllSlots(), { passive: true });
     document.addEventListener('pointerdown', (e) => {
-      if (!e.target.closest('.image-slot')) disarmCurrentSlot();
+      if (!e.target.closest('.image-slot')) disarmAllSlots();
     });
 
     function scrollToVisiblePosition(vPos) {
@@ -769,7 +772,7 @@
       if (vPos < 0) vPos = visibleIndices.length - 1;
       else if (vPos >= visibleIndices.length) vPos = 0;
 
-      disarmCurrentSlot();
+      disarmAllSlots();
       const targetIdx = visibleIndices[vPos];
       updateActiveMemoryBudget(vPos);
       const targetSlot = SLOTS[targetIdx];
@@ -801,10 +804,14 @@
 
     function updatePointerIcon() {
       const btn = document.getElementById('btn-hand');
-      if (isLeftHanded) {
-        btn.textContent = isCollapsed ? '👉🏼' : '👈🏼';
+      if (window.innerWidth <= 540) {
+        if (isLeftHanded) {
+          btn.textContent = isCollapsed ? '👉🏼' : '👈🏼';
+        } else {
+          btn.textContent = isCollapsed ? '👈🏼' : '👉🏼';
+        }
       } else {
-        btn.textContent = isCollapsed ? '👈🏼' : '👉🏼';
+        btn.textContent = isLeftHanded ? '👈🏼' : '👉🏼';
       }
     }
 
@@ -826,12 +833,15 @@
       }
     });
 
+    window.addEventListener('resize', updatePointerIcon);
+
     const navDock = document.getElementById('nav-dock');
     let dockStartX = 0;
     let dockStartY = 0;
     let hasDraggedDock = false;
 
     navDock.addEventListener('pointerdown', (e) => {
+      navDock.setPointerCapture(e.pointerId);
       dockStartX = e.clientX;
       dockStartY = e.clientY;
       hasDraggedDock = false;
@@ -846,6 +856,9 @@
     });
 
     navDock.addEventListener('pointerup', (e) => {
+      if (navDock.hasPointerCapture(e.pointerId)) {
+        navDock.releasePointerCapture(e.pointerId);
+      }
       if (hasDraggedDock) {
         const dx = e.clientX - dockStartX;
         if (!isLeftHanded && dx < -60) {
@@ -914,7 +927,7 @@
     }
 
     function applySearchFilter(query) {
-      disarmCurrentSlot();
+      disarmAllSlots();
       const trimmed = query.trim();
       if (trimmed.startsWith('#')) return;
 
@@ -994,11 +1007,12 @@
       } else if (e.key === 'Escape') {
         if (infoVisible) document.getElementById('btn-info').click();
         if (searchVisible) toggleSearch(false);
-        disarmCurrentSlot();
+        disarmAllSlots();
       }
     });
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
+  <!-- 4K WALLPAPERS v1.1.1 -->
 </body>
 </html>
