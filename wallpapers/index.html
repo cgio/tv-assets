@@ -35,7 +35,7 @@
       --nav-dock-height: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
       --info-dock-gap: var(--fib-13);
 
-      --glass-bg: rgba(18, 18, 22, 0.76);
+      --glass-bg: rgba(18, 18, 22, 0.78);
       --glass-border: rgba(255, 255, 255, 0.13);
       --glass-highlight: rgba(255, 255, 255, 0.34);
       --glass-shadow: 0 var(--fib-8) var(--fib-34) rgba(0, 0, 0, 0.65);
@@ -84,29 +84,6 @@
       opacity: 0.45;
     }
 
-    /* Keyboard-Stable Viewport Vignette */
-    #vignette-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: calc(100lvh + 100px);
-      min-height: 100vh;
-      pointer-events: none;
-      z-index: 2;
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
-      background: linear-gradient(
-        to bottom,
-        rgba(12, 13, 16, 0.88) 0%,
-        rgba(12, 13, 16, 0.42) 13%,
-        rgba(12, 13, 16, 0) 28%,
-        rgba(12, 13, 16, 0) 72%,
-        rgba(12, 13, 16, 0.48) 87%,
-        rgba(12, 13, 16, 0.95) 100%
-      );
-    }
-
     /* Splash Screen */
     #splash-screen {
       position: fixed;
@@ -114,7 +91,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(10, 10, 14, 0.92);
+      background: rgba(10, 10, 14, 0.94);
       backdrop-filter: blur(var(--fib-21));
       -webkit-backdrop-filter: blur(var(--fib-21));
       z-index: 1000;
@@ -163,6 +140,15 @@
       text-transform: uppercase;
     }
 
+    .splash-ver {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      letter-spacing: var(--fib-2);
+      color: var(--accent-yellow);
+      margin-top: var(--fib-5);
+      opacity: 0.85;
+    }
+
     /* Gallery Feed */
     #gallery-container {
       position: relative;
@@ -179,7 +165,7 @@
       position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.03);
       border-radius: var(--fib-13);
       border: 1px solid rgba(255, 255, 255, 0.05);
       box-shadow: 0 var(--fib-13) var(--fib-34) rgba(0, 0, 0, 0.6);
@@ -189,8 +175,6 @@
       overflow: hidden;
       cursor: pointer;
       touch-action: pan-y;
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
       transition: border-color 0.28s ease, box-shadow 0.28s ease;
     }
 
@@ -199,28 +183,25 @@
       height: 100%;
       object-fit: cover;
       opacity: 0;
-      visibility: hidden;
-      color: transparent;
-      font-size: 0;
       pointer-events: none;
-      transition: opacity 0.34s ease-in-out, filter 0.28s ease;
+      transition: opacity 0.38s ease-in-out;
     }
 
     .image-slot img.loaded {
       opacity: 1;
-      visibility: visible;
     }
 
+    /* Armed Card State */
     .image-slot.armed {
       border-color: var(--glass-highlight);
       box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
     }
 
     .image-slot.armed img {
-      filter: brightness(0.60) !important;
+      filter: brightness(0.55);
     }
 
-    /* Armed Overlay Container */
+    /* Action Modal Overlay */
     .slot-action-overlay {
       position: absolute;
       inset: 0;
@@ -239,6 +220,7 @@
     .image-slot.armed .slot-action-overlay {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
       transform: scale(1);
     }
 
@@ -249,7 +231,6 @@
       justify-content: center;
       gap: var(--fib-13);
       max-width: 100%;
-      pointer-events: auto;
     }
 
     .action-btn-row {
@@ -274,7 +255,6 @@
       -webkit-backdrop-filter: blur(var(--fib-21));
       box-shadow: var(--glass-shadow);
       cursor: pointer;
-      pointer-events: none;
       transition: transform 0.13s ease, background 0.13s ease;
     }
 
@@ -296,14 +276,12 @@
       color: #ffffff;
       text-transform: uppercase;
       line-height: 1;
-      text-box-trim: both;
-      text-box-edge: cap alphabetic;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    /* In-Card Info Field */
+    /* In-Card Info Pill */
     .slot-info-box {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
@@ -319,7 +297,6 @@
       word-break: break-all;
       user-select: text !important;
       -webkit-user-select: text !important;
-      -moz-user-select: text !important;
       cursor: text;
       text-align: center;
       line-height: 1.3;
@@ -507,9 +484,7 @@
         overflow: hidden;
       }
 
-      /* Right-Docked Grid:
-         Row 1: [ 🔍 ] [ 🎲 ] [ 👉🏼 ]
-         Row 2: [ ⬅️ ] [ ➡️ ] [ ✅ ] */
+      /* Right-Docked Grid */
       body.hand-right #nav-dock {
         justify-content: end;
       }
@@ -521,9 +496,7 @@
       body.hand-right #btn-next   { grid-column: 2; grid-row: 2; }
       body.hand-right #btn-action { grid-column: 3; grid-row: 2; }
 
-      /* Left-Docked Grid:
-         Row 1: [ 👈🏼 ] [ 🎲 ] [ 🔎 ]
-         Row 2: [ ✅ ] [ ⬅️ ] [ ➡️ ] */
+      /* Left-Docked Grid */
       body.hand-left #nav-dock {
         justify-content: start;
       }
@@ -535,7 +508,7 @@
       body.hand-left #btn-prev   { grid-column: 2; grid-row: 2; }
       body.hand-left #btn-next   { grid-column: 3; grid-row: 2; }
 
-      /* Mobile XS Collapsed */
+      /* Mobile XS Collapsed: Exactly 1 column width */
       body.dock-collapsed #nav-dock {
         width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
       }
@@ -548,12 +521,12 @@
 <body class="hand-right dock-collapsed">
 
   <canvas id="texture-canvas"></canvas>
-  <div id="vignette-overlay"></div>
 
   <div id="splash-screen">
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
+      <div class="splash-ver">v1.6.0</div>
     </div>
   </div>
 
@@ -589,9 +562,9 @@
     let searchVisible = false;
     let diceDegrees = 0;
     let armedIndex = null;
-    let armLockTimer = null;
     const SLOTS = [];
 
+    // Background procedural texture
     (function initOrganicTexture() {
       const canvas = document.getElementById('texture-canvas');
       const ctx = canvas.getContext('2d');
@@ -698,15 +671,9 @@
     }
 
     function disarmAllSlots() {
-      if (armLockTimer) {
-        clearTimeout(armLockTimer);
-        armLockTimer = null;
+      if (armedIndex !== null && SLOTS[armedIndex]) {
+        SLOTS[armedIndex].classList.remove('armed');
       }
-      document.querySelectorAll('.image-slot.armed').forEach(slot => {
-        slot.classList.remove('armed');
-        slot.dataset.armedAt = '0';
-        slot.querySelectorAll('.btn-slot-action').forEach(btn => btn.style.pointerEvents = 'none');
-      });
       armedIndex = null;
     }
 
@@ -716,47 +683,25 @@
       if (slot) {
         slot.classList.add('armed');
         armedIndex = index;
-        const now = Date.now();
-        slot.dataset.armedAt = String(now);
-        const actionBtns = slot.querySelectorAll('.btn-slot-action');
-        actionBtns.forEach(btn => btn.style.pointerEvents = 'none');
-
-        armLockTimer = setTimeout(() => {
-          if (armedIndex === index && slot.classList.contains('armed') && slot.dataset.armedAt === String(now)) {
-            actionBtns.forEach(btn => btn.style.pointerEvents = 'auto');
-          }
-        }, 450);
       }
     }
 
-    // Preload & Unload Buffer (Preloads 1.2 viewports ahead, unloads 2 viewports behind)
-    const bufferObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const slot = entry.target;
-        const img = slot._img;
-        if (!img) return;
-        const idx = parseInt(slot.dataset.index, 10);
-
-        if (entry.isIntersecting) {
-          if (!img.src || img.src === window.location.href) {
-            img.src = RAW_IMG_BASE + encodeURIComponent(wallpapers[idx]);
-            img.onload = () => img.classList.add('loaded');
-          }
-        } else {
-          if (img.src) {
-            img.classList.remove('loaded');
-            img.removeAttribute('src');
-          }
-        }
+    // Centering calculation for smooth scrolling
+    function scrollToSlot(targetSlot, smooth = true) {
+      if (!targetSlot) return;
+      const rect = targetSlot.getBoundingClientRect();
+      const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+      window.scrollTo({
+        top: targetY,
+        behavior: smooth ? 'smooth' : 'auto'
       });
-    }, { rootMargin: '120% 0px 120% 0px' });
+    }
 
-    // Midpoint Viewport Centering Observer
+    // Lightweight center-detection observer
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
-          const slotIdx = parseInt(entry.target.dataset.index, 10);
-          currentIndex = slotIdx;
+          currentIndex = parseInt(entry.target.dataset.index, 10);
         }
       });
     }, { rootMargin: '-35% 0px -35% 0px' });
@@ -788,16 +733,16 @@
         const slot = document.createElement('div');
         slot.className = 'image-slot';
         slot.dataset.index = index;
-        slot.dataset.armedAt = '0';
 
-        // Clean alt tag: removes extension and replaces underscores with spaces
+        // Clean alt tag: no extension, spaces instead of underscores
         const cleanAlt = file.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
 
         const img = document.createElement('img');
         img.alt = cleanAlt;
-        img.loading = 'eager';
-        img.decoding = 'async';
-        slot._img = img;
+        img.loading = 'lazy';       // Native browser lazy-loading engine
+        img.decoding = 'async';     // Off-thread decode
+        img.src = RAW_IMG_BASE + encodeURIComponent(file);
+        img.onload = () => img.classList.add('loaded');
 
         const overlay = document.createElement('div');
         overlay.className = 'slot-action-overlay';
@@ -805,9 +750,7 @@
         const actionCard = document.createElement('div');
         actionCard.className = 'slot-action-card';
 
-        // Stop propagation so interactions inside the card never trigger slot dismissal
-        actionCard.addEventListener('pointerdown', (e) => e.stopPropagation());
-        actionCard.addEventListener('pointerup', (e) => e.stopPropagation());
+        // Action modal clicks never bubble to disarm the card
         actionCard.addEventListener('click', (e) => e.stopPropagation());
 
         const btnRow = document.createElement('div');
@@ -820,8 +763,6 @@
 
         dlBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const armedAt = parseInt(slot.dataset.armedAt || '0', 10);
-          if (Date.now() - armedAt < 450) return;
           triggerDownload(index);
           disarmAllSlots();
         });
@@ -833,8 +774,6 @@
 
         shareBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const armedAt = parseInt(slot.dataset.armedAt || '0', 10);
-          if (Date.now() - armedAt < 450) return;
           triggerShare(index);
           disarmAllSlots();
         });
@@ -864,35 +803,23 @@
         slot.appendChild(img);
         slot.appendChild(overlay);
 
-        // Robust Touch & Click Detection
-        let startX = 0;
-        let startY = 0;
-
-        slot.addEventListener('pointerdown', (e) => {
-          startX = e.clientX;
-          startY = e.clientY;
-        });
-
-        slot.addEventListener('pointerup', (e) => {
-          if (e.target.closest('.slot-action-overlay')) return;
-          const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
-          if (dist < 18) {
-            if (armedIndex === index) {
-              disarmAllSlots();
-            } else {
-              armSlot(index);
-            }
+        // Immediate responsive click
+        slot.addEventListener('click', (e) => {
+          if (e.target.closest('.slot-action-card')) return;
+          if (armedIndex === index) {
+            disarmAllSlots();
+          } else {
+            armSlot(index);
           }
         });
 
         container.appendChild(slot);
         SLOTS.push(slot);
         visibleIndices.push(index);
-        bufferObserver.observe(slot);
         centerObserver.observe(slot);
       });
 
-      // Direct Query Parameter Parsing (?i=56)
+      // GET parameter check (?i=56)
       const urlParams = new URLSearchParams(window.location.search);
       const paramI = urlParams.get('i');
       let initialPos;
@@ -910,12 +837,7 @@
       }
 
       currentIndex = initialPos;
-      const initialSlot = SLOTS[initialPos];
-      if (initialSlot) {
-        const rect = initialSlot.getBoundingClientRect();
-        const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
-        window.scrollTo({ top: targetY });
-      }
+      scrollToSlot(SLOTS[initialPos], false);
       updateControlsOrientation();
 
       if (document.fonts) {
@@ -928,12 +850,12 @@
       }, 750);
     }
 
+    // Dismiss active card on external scroll
     window.addEventListener('scroll', () => disarmAllSlots(), { passive: true });
     document.addEventListener('pointerdown', (e) => {
       if (!e.target.closest('.image-slot')) disarmAllSlots();
     });
 
-    // Exact Mathematical Viewport Midpoint Scroll
     function scrollToVisiblePosition(vPos) {
       if (visibleIndices.length === 0) return;
       if (vPos < 0) vPos = visibleIndices.length - 1;
@@ -942,12 +864,7 @@
       disarmAllSlots();
       const targetIdx = visibleIndices[vPos];
       currentIndex = targetIdx;
-      const targetSlot = SLOTS[targetIdx];
-      if (targetSlot) {
-        const rect = targetSlot.getBoundingClientRect();
-        const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
-        window.scrollTo({ top: targetY, behavior: 'smooth' });
-      }
+      scrollToSlot(SLOTS[targetIdx], true);
     }
 
     document.getElementById('btn-prev').addEventListener('click', () => {
@@ -979,12 +896,7 @@
         disarmAllSlots();
       } else {
         armSlot(currentIndex);
-        const targetSlot = SLOTS[currentIndex];
-        if (targetSlot) {
-          const rect = targetSlot.getBoundingClientRect();
-          const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
-          window.scrollTo({ top: targetY, behavior: 'smooth' });
-        }
+        scrollToSlot(SLOTS[currentIndex], true);
       }
     });
 
@@ -1088,12 +1000,7 @@
           SLOTS[idx].style.display = 'flex';
         });
         currentIndex = targetIdx;
-        const targetSlot = SLOTS[targetIdx];
-        if (targetSlot) {
-          const rect = targetSlot.getBoundingClientRect();
-          const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
-          window.scrollTo({ top: targetY, behavior: 'smooth' });
-        }
+        scrollToSlot(SLOTS[targetIdx], true);
         showToast(`Wallpaper #${num.toLocaleString()}`);
         toggleSearch(false);
       } else {
@@ -1174,6 +1081,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.5.1 -->
+  <!-- 4K WALLPAPERS v1.6.0 -->
 </body>
 </html>
