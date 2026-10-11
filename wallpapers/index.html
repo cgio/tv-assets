@@ -683,15 +683,48 @@
       document.getElementById('info-pill').textContent = `#${(currentIndex + 1).toLocaleString()} | ${activeFile}`;
     }
 
-    const centerObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && entry.target.style.display !== 'none') {
-          const slotIdx = parseInt(entry.target.dataset.index, 10);
-          const vPos = visibleIndices.indexOf(slotIdx);
-          if (vPos !== -1) updateActiveMemoryBudget(vPos);
+    // Viewport Centering Engine: Evaluates candidate cards by distance from exact viewport midpoint
+    const inViewSlots = new Set();
+    let scrollTick = false;
+
+    function evaluateCenterCard() {
+      if (inViewSlots.size === 0) return;
+      const vCenter = window.innerHeight / 2;
+      let closestSlot = null;
+      let minDistance = Infinity;
+
+      inViewSlots.forEach(slot => {
+        if (slot.style.display === 'none') return;
+        const rect = slot.getBoundingClientRect();
+        const slotCenter = rect.top + (rect.height / 2);
+        const dist = Math.abs(slotCenter - vCenter);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestSlot = slot;
         }
       });
-    }, { rootMargin: '-40% 0px -40% 0px', threshold: 0 });
+
+      if (closestSlot) {
+        const idx = parseInt(closestSlot.dataset.index, 10);
+        if (idx !== currentIndex) {
+          const vPos = visibleIndices.indexOf(idx);
+          if (vPos !== -1) {
+            updateActiveMemoryBudget(vPos);
+          }
+        }
+      }
+    }
+
+    const viewportObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          inViewSlots.add(entry.target);
+        } else {
+          inViewSlots.delete(entry.target);
+        }
+      });
+      evaluateCenterCard();
+    }, { rootMargin: '20% 0px 20% 0px' });
 
     async function loadWallpapers() {
       try {
@@ -776,7 +809,7 @@
         container.appendChild(slot);
         SLOTS.push(slot);
         visibleIndices.push(index);
-        centerObserver.observe(slot);
+        viewportObserver.observe(slot);
       });
 
       // GET Parameter Direct Index Parsing (?i=56)
@@ -810,7 +843,18 @@
       }, 750);
     }
 
-    window.addEventListener('scroll', () => disarmAllSlots(), { passive: true });
+    // Scroll Listener: Disarms slots and recalibrates active center focus on each animation frame
+    window.addEventListener('scroll', () => {
+      disarmAllSlots();
+      if (!scrollTick) {
+        requestAnimationFrame(() => {
+          evaluateCenterCard();
+          scrollTick = false;
+        });
+        scrollTick = true;
+      }
+    }, { passive: true });
+
     document.addEventListener('pointerdown', (e) => {
       if (!e.target.closest('.image-slot')) disarmAllSlots();
     });
@@ -1065,6 +1109,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.3.1 -->
+  <!-- 4K WALLPAPERS v1.3.2 -->
 </body>
 </html>
