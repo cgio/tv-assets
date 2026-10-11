@@ -38,6 +38,7 @@
       --glass-border: rgba(255, 255, 255, 0.13);
       --glass-highlight: rgba(255, 255, 255, 0.34);
       --glass-shadow: 0 var(--fib-8) var(--fib-34) rgba(0, 0, 0, 0.65);
+      --accent-yellow: #ffe066;
       --font-body: 'Francois One', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-splash: 'Rubik Vinyl', cursive;
     }
@@ -52,11 +53,11 @@
 
     /* High-Contrast Golden-Yellow Selection */
     ::selection {
-      background: #ffe066 !important;
+      background: var(--accent-yellow) !important;
       color: #0c0d10 !important;
     }
     ::-moz-selection {
-      background: #ffe066 !important;
+      background: var(--accent-yellow) !important;
       color: #0c0d10 !important;
     }
 
@@ -122,6 +123,11 @@
       color: #ffffff;
       text-shadow: 0 0 var(--fib-34) rgba(255, 255, 255, 0.25);
       line-height: 1.1;
+    }
+
+    .splash-4k {
+      color: var(--accent-yellow);
+      text-shadow: 0 0 var(--fib-21) rgba(255, 224, 102, 0.45);
     }
 
     .splash-sub {
@@ -358,25 +364,25 @@
     }
 
     /* Desktop Horizontal Ordering */
-    /* Right Desktop: 👉🏼 ℹ️ 📋 🔍 🎲 💾 ⬅️ ➡️ */
-    body.hand-right #btn-hand   { order: 1; }
-    body.hand-right #btn-info   { order: 2; }
-    body.hand-right #btn-copy   { order: 3; }
-    body.hand-right #btn-search { order: 4; }
-    body.hand-right #btn-random { order: 5; }
-    body.hand-right #btn-save   { order: 6; }
-    body.hand-right #btn-prev   { order: 7; }
-    body.hand-right #btn-next   { order: 8; }
+    /* Right-Docked: [ ⬅️ ] [ ➡️ ] [ 💾 ] [ 🎲 ] [ 🔍 ] [ 📋 ] [ ℹ️ ] [ 👈🏼 ] */
+    body.hand-right #btn-prev   { order: 1; }
+    body.hand-right #btn-next   { order: 2; }
+    body.hand-right #btn-save   { order: 3; }
+    body.hand-right #btn-random { order: 4; }
+    body.hand-right #btn-search { order: 5; }
+    body.hand-right #btn-copy   { order: 6; }
+    body.hand-right #btn-info   { order: 7; }
+    body.hand-right #btn-hand   { order: 8; }
 
-    /* Left Desktop: ⬅️ ➡️ 🎲 💾 ℹ️ 📋 🔎 👈🏼 */
-    body.hand-left #btn-prev   { order: 1; }
-    body.hand-left #btn-next   { order: 2; }
-    body.hand-left #btn-random { order: 3; }
-    body.hand-left #btn-save   { order: 4; }
-    body.hand-left #btn-info   { order: 5; }
-    body.hand-left #btn-copy   { order: 6; }
-    body.hand-left #btn-search { order: 7; }
-    body.hand-left #btn-hand   { order: 8; }
+    /* Left-Docked: [ 👉🏼 ] [ ℹ️ ] [ 📋 ] [ 🔎 ] [ 🎲 ] [ 💾 ] [ ⬅️ ] [ ➡️ ] */
+    body.hand-left #btn-hand   { order: 1; }
+    body.hand-left #btn-info   { order: 2; }
+    body.hand-left #btn-copy   { order: 3; }
+    body.hand-left #btn-search { order: 4; }
+    body.hand-left #btn-random { order: 5; }
+    body.hand-left #btn-save   { order: 6; }
+    body.hand-left #btn-prev   { order: 7; }
+    body.hand-left #btn-next   { order: 8; }
 
     .nav-btn {
       width: var(--nav-btn-size);
@@ -441,7 +447,7 @@
         overflow: hidden;
       }
 
-      /* Right-handed Grid: Anchored right
+      /* Right-Docked Grid:
          Row 1: ℹ️ 📋 🔍 👉🏼
          Row 2: 🎲 ⬅️ ➡️ 💾 */
       body.hand-right #nav-dock {
@@ -457,7 +463,7 @@
       body.hand-right #btn-next   { grid-column: 3; grid-row: 2; }
       body.hand-right #btn-save   { grid-column: 4; grid-row: 2; }
 
-      /* Left-handed Grid: Anchored left
+      /* Left-Docked Grid:
          Row 1: 👈🏼 🔎 📋 ℹ️
          Row 2: 💾 ⬅️ ➡️ 🎲 */
       body.hand-left #nav-dock {
@@ -488,7 +494,7 @@
 
   <div id="splash-screen">
     <div class="splash-box">
-      <div class="splash-title">4K WALLPAPERS</div>
+      <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
     </div>
   </div>
@@ -604,6 +610,7 @@
       }
       document.querySelectorAll('.image-slot.armed').forEach(slot => {
         slot.classList.remove('armed');
+        slot.dataset.armedAt = '0';
         const dlBtn = slot.querySelector('.btn-slot-download');
         if (dlBtn) dlBtn.style.pointerEvents = 'none';
       });
@@ -616,11 +623,13 @@
       if (slot) {
         slot.classList.add('armed');
         armedIndex = index;
+        const now = Date.now();
+        slot.dataset.armedAt = String(now);
         const dlBtn = slot.querySelector('.btn-slot-download');
         if (dlBtn) {
           dlBtn.style.pointerEvents = 'none';
           armLockTimer = setTimeout(() => {
-            if (armedIndex === index && slot.classList.contains('armed')) {
+            if (armedIndex === index && slot.classList.contains('armed') && slot.dataset.armedAt === String(now)) {
               dlBtn.style.pointerEvents = 'auto';
             }
           }, 450);
@@ -692,6 +701,7 @@
         const slot = document.createElement('div');
         slot.className = 'image-slot';
         slot.dataset.index = index;
+        slot.dataset.armedAt = '0';
 
         const img = document.createElement('img');
         img.alt = file;
@@ -706,6 +716,11 @@
 
         dlBtn.addEventListener('click', (e) => {
           e.stopPropagation();
+          const armedAt = parseInt(slot.dataset.armedAt || '0', 10);
+          if (Date.now() - armedAt < 450) {
+            e.preventDefault();
+            return;
+          }
           triggerDownload(index);
           disarmAllSlots();
         });
@@ -745,12 +760,27 @@
         centerObserver.observe(slot);
       });
 
-      const randomStart = Math.floor(Math.random() * (wallpapers.length - 8)) + 4;
-      const initialPos = Math.max(0, Math.min(randomStart, wallpapers.length - 1));
+      // GET Parameter Direct Index Parsing (?i=56)
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramI = urlParams.get('i');
+      let initialPos;
+
+      if (paramI) {
+        const parsedNum = parseInt(paramI.replace(/,/g, ''), 10);
+        if (!isNaN(parsedNum) && parsedNum >= 1 && parsedNum <= wallpapers.length) {
+          initialPos = parsedNum - 1;
+        }
+      }
+
+      // Random fallback when ?i= is absent or invalid
+      if (initialPos === undefined) {
+        const randomStart = Math.floor(Math.random() * (wallpapers.length - 8)) + 4;
+        initialPos = Math.max(0, Math.min(randomStart, wallpapers.length - 1));
+      }
 
       SLOTS[initialPos].scrollIntoView({ block: 'center' });
       updateActiveMemoryBudget(initialPos);
-      updatePointerIcon();
+      updateControlsOrientation();
 
       if (document.fonts) {
         await document.fonts.ready;
@@ -802,24 +832,29 @@
       showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
     });
 
-    function updatePointerIcon() {
-      const btn = document.getElementById('btn-hand');
+    function updateControlsOrientation() {
+      const btnHand = document.getElementById('btn-hand');
+      const btnSearch = document.getElementById('btn-search');
+
+      // Right-docked: 🔍 | Left-docked: 🔎
+      btnSearch.textContent = isLeftHanded ? '🔎' : '🔍';
+
       if (window.innerWidth <= 540) {
         if (isLeftHanded) {
-          btn.textContent = isCollapsed ? '👉🏼' : '👈🏼';
+          btnHand.textContent = isCollapsed ? '👉🏼' : '👈🏼';
         } else {
-          btn.textContent = isCollapsed ? '👈🏼' : '👉🏼';
+          btnHand.textContent = isCollapsed ? '👈🏼' : '👉🏼';
         }
       } else {
-        btn.textContent = isLeftHanded ? '👈🏼' : '👉🏼';
+        // Desktop horizontal ends
+        btnHand.textContent = isLeftHanded ? '👉🏼' : '👈🏼';
       }
     }
 
     function setHandMode(left) {
       isLeftHanded = left;
       document.body.className = (isLeftHanded ? 'hand-left' : 'hand-right') + (isCollapsed ? ' dock-collapsed' : '');
-      document.getElementById('btn-search').textContent = isLeftHanded ? '🔎' : '🔍';
-      updatePointerIcon();
+      updateControlsOrientation();
       showToast(isLeftHanded ? 'Left-handed Mode' : 'Right-handed Mode');
     }
 
@@ -827,39 +862,40 @@
       if (window.innerWidth <= 540) {
         isCollapsed = !isCollapsed;
         document.body.classList.toggle('dock-collapsed', isCollapsed);
-        updatePointerIcon();
+        updateControlsOrientation();
       } else {
         setHandMode(!isLeftHanded);
       }
     });
 
-    window.addEventListener('resize', updatePointerIcon);
+    window.addEventListener('resize', updateControlsOrientation);
 
+    // Clean drag detection without setPointerCapture (fixes Firefox desktop button click suppression)
     const navDock = document.getElementById('nav-dock');
+    let isMouseDown = false;
     let dockStartX = 0;
     let dockStartY = 0;
-    let hasDraggedDock = false;
+    let hasDragged = false;
 
     navDock.addEventListener('pointerdown', (e) => {
-      navDock.setPointerCapture(e.pointerId);
+      if (e.button !== undefined && e.button !== 0) return;
+      isMouseDown = true;
       dockStartX = e.clientX;
       dockStartY = e.clientY;
-      hasDraggedDock = false;
+      hasDragged = false;
     });
 
-    navDock.addEventListener('pointermove', (e) => {
-      const dx = e.clientX - dockStartX;
-      const dy = e.clientY - dockStartY;
-      if (Math.hypot(dx, dy) > 15) {
-        hasDraggedDock = true;
+    window.addEventListener('pointermove', (e) => {
+      if (!isMouseDown) return;
+      if (Math.hypot(e.clientX - dockStartX, e.clientY - dockStartY) > 18) {
+        hasDragged = true;
       }
     });
 
-    navDock.addEventListener('pointerup', (e) => {
-      if (navDock.hasPointerCapture(e.pointerId)) {
-        navDock.releasePointerCapture(e.pointerId);
-      }
-      if (hasDraggedDock) {
+    window.addEventListener('pointerup', (e) => {
+      if (!isMouseDown) return;
+      isMouseDown = false;
+      if (hasDragged) {
         const dx = e.clientX - dockStartX;
         if (!isLeftHanded && dx < -60) {
           setHandMode(true);
@@ -870,10 +906,10 @@
     });
 
     navDock.addEventListener('click', (e) => {
-      if (hasDraggedDock) {
+      if (hasDragged) {
         e.stopPropagation();
         e.preventDefault();
-        hasDraggedDock = false;
+        hasDragged = false;
       }
     }, true);
 
@@ -1013,6 +1049,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.1.1 -->
+  <!-- 4K WALLPAPERS v1.2.0 -->
 </body>
 </html>
