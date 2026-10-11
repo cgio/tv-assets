@@ -156,7 +156,7 @@
       opacity: 0.85;
     }
 
-    /* Persistent Filter Indicator Pill */
+    /* Persistent Filter Indicator */
     #filter-banner {
       position: fixed;
       top: calc(var(--fib-13) + env(safe-area-inset-top));
@@ -216,10 +216,10 @@
       color: #ffffff;
     }
 
-    /* Transient Notifications: Positioned below persistent banner */
+    /* Cascading Toast Positioning */
     #toast {
       position: fixed;
-      top: calc(var(--fib-55) + env(safe-area-inset-top));
+      top: calc(var(--fib-34) + env(safe-area-inset-top));
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
       padding: var(--fib-8) var(--fib-21);
@@ -230,9 +230,17 @@
       letter-spacing: 0.5px;
       opacity: 0;
       transform: translateY(-20px);
-      transition: opacity 0.21s ease, transform 0.21s ease;
+      transition: opacity 0.21s ease, transform 0.21s ease, top 0.21s cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 1100;
       pointer-events: none;
+    }
+
+    body.filter-active #toast {
+      top: calc(var(--fib-55) + env(safe-area-inset-top));
+    }
+
+    body.search-open #toast {
+      top: calc(var(--fib-89) + var(--fib-21) + env(safe-area-inset-top));
     }
 
     #toast.show {
@@ -344,8 +352,8 @@
       background: var(--glass-bg);
       border: 1px solid var(--glass-highlight);
       border-radius: var(--fib-21);
-      padding: var(--fib-13) var(--fib-21);
-      min-width: var(--fib-89);
+      padding: var(--fib-13) clamp(var(--fib-8), 2.5vw, var(--fib-21));
+      min-width: clamp(72px, 20vw, var(--fib-89));
       backdrop-filter: blur(var(--fib-21));
       -webkit-backdrop-filter: blur(var(--fib-21));
       box-shadow: var(--glass-shadow);
@@ -364,7 +372,6 @@
       display: block;
     }
 
-    /* Bold action labels */
     .btn-slot-action .action-label {
       font-family: var(--font-body);
       font-weight: 700;
@@ -610,7 +617,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.9.4</div>
+      <div class="splash-ver">v1.9.5</div>
     </div>
   </div>
 
@@ -645,6 +652,10 @@
         <button class="btn-slot-action btn-slot-share" id="modal-btn-share" aria-label="Share Wallpaper Link">
           <span class="action-emoji">🔗</span>
           <span class="action-label">SHARE</span>
+        </button>
+        <button class="btn-slot-action btn-slot-url" id="modal-btn-url" aria-label="Copy Direct Image URL">
+          <span class="action-emoji">🌐</span>
+          <span class="action-label">URL</span>
         </button>
       </div>
       <div class="slot-info-box" id="modal-info-box" title="Click to highlight text"></div>
@@ -684,6 +695,7 @@
     const sharedOverlay = document.getElementById('shared-action-overlay');
     const modalDlBtn = document.getElementById('modal-btn-download');
     const modalShareBtn = document.getElementById('modal-btn-share');
+    const modalUrlBtn = document.getElementById('modal-btn-url');
     const modalInfoBox = document.getElementById('modal-info-box');
     const filterBanner = document.getElementById('filter-banner');
     const filterTerm = document.getElementById('filter-term');
@@ -867,9 +879,11 @@
 
       modalDlBtn.style.pointerEvents = 'none';
       modalShareBtn.style.pointerEvents = 'none';
+      modalUrlBtn.style.pointerEvents = 'none';
       armLockTimer = setTimeout(() => {
         modalDlBtn.style.pointerEvents = 'auto';
         modalShareBtn.style.pointerEvents = 'auto';
+        modalUrlBtn.style.pointerEvents = 'auto';
       }, 200);
     }
 
@@ -882,6 +896,18 @@
     modalShareBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       triggerShare(armedIndex);
+      disarmAllSlots();
+    });
+    modalUrlBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const file = wallpapers[armedIndex];
+      if (!file) return;
+      const rawUrl = RAW_IMG_BASE + encodeURIComponent(file);
+      navigator.clipboard.writeText(rawUrl).then(() => {
+        showToast('Direct URL Copied');
+      }).catch(() => {
+        showToast('Clipboard access denied');
+      });
       disarmAllSlots();
     });
     modalInfoBox.addEventListener('click', (e) => {
@@ -926,7 +952,6 @@
       }
     }
 
-    // Synchronous VRAM Eviction on Jump: Prevents OOM Jetsam crashes during rapid random taps
     function pruneOutsideWindow(centerPos) {
       const keepWindow = new Set();
       for (let offset = -4; offset <= 4; offset++) {
@@ -940,7 +965,7 @@
           const slot = SLOTS[idx];
           if (slot && slot._img && slot._img.src) {
             slot._img.classList.remove('loaded');
-            slot._img.removeAttribute('src'); // Instantly aborts in-flight decode & releases 33MB surface
+            slot._img.removeAttribute('src');
           }
         }
       });
@@ -1079,7 +1104,6 @@
       const targetIdx = visibleIndices[vPos];
       currentIndex = targetIdx;
 
-      // Immediately evict out-of-window textures to prevent VRAM accumulation
       pruneOutsideWindow(vPos);
       hydrateSlot(targetIdx);
       scrollToSlot(SLOTS[targetIdx], smooth);
@@ -1095,7 +1119,6 @@
       scrollToVisiblePosition(curVPos + 1, true);
     });
 
-    // Rapid Tapping Guard: Snaps immediately if tapped within 220ms of previous jump
     document.getElementById('btn-random').addEventListener('click', () => {
       if (visibleIndices.length <= 1) return;
       stepDiceRotation();
@@ -1210,6 +1233,7 @@
       searchVisible = show !== undefined ? show : !searchVisible;
       searchBackdrop.classList.toggle('visible', searchVisible);
       searchBox.classList.toggle('visible', searchVisible);
+      document.body.classList.toggle('search-open', searchVisible);
       if (searchVisible) {
         searchInput.focus();
       } else {
@@ -1224,6 +1248,7 @@
       searchInput.value = '';
       applySearchFilter('');
       filterBanner.classList.remove('visible');
+      document.body.classList.remove('filter-active');
     }
 
     filterBanner.addEventListener('click', () => clearFilterState());
@@ -1246,6 +1271,7 @@
         scrollToSlot(SLOTS[targetIdx], true);
         showToast(`Wallpaper #${num.toLocaleString()}`);
         toggleSearch(false);
+        schedulePostScrollPrune();
       } else {
         showToast(`Out of range (1–${wallpapers.length.toLocaleString()})`);
       }
@@ -1268,8 +1294,10 @@
       if (q) {
         filterTerm.textContent = `"${trimmed}"`;
         filterBanner.classList.add('visible');
+        document.body.classList.add('filter-active');
       } else {
         filterBanner.classList.remove('visible');
+        document.body.classList.remove('filter-active');
       }
 
       if (visibleIndices.length > 0) {
@@ -1330,6 +1358,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.9.4 -->
+  <!-- 4K WALLPAPERS v1.9.5 -->
 </body>
 </html>
