@@ -8,7 +8,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖼️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Francois+One&family=Rubik+Vinyl&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800&family=Francois+One&display=swap" rel="stylesheet">
 
   <style>
     /* --- Phi / Fibonacci Natural Scale --- */
@@ -41,7 +41,7 @@
       --glass-shadow: 0 var(--fib-8) var(--fib-34) rgba(0, 0, 0, 0.65);
       --accent-yellow: #ffe066;
       --font-body: 'Francois One', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-splash: 'Rubik Vinyl', cursive;
+      --font-splash: 'Archivo-Raw', 'Archivo', sans-serif;
     }
 
     * {
@@ -71,6 +71,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      -webkit-font-smoothing: antialiased;
     }
 
     #texture-canvas {
@@ -119,8 +120,9 @@
 
     .splash-title {
       font-family: var(--font-splash);
-      font-size: clamp(2.3rem, 7.5vw, 5rem);
-      letter-spacing: var(--fib-5);
+      font-weight: 800;
+      font-size: clamp(2.2rem, 7.5vw, 4.8rem);
+      letter-spacing: var(--fib-3);
       color: #ffffff;
       text-shadow: 0 0 var(--fib-34) rgba(255, 255, 255, 0.25);
       line-height: 1.1;
@@ -142,11 +144,11 @@
 
     .splash-ver {
       font-family: var(--font-body);
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       letter-spacing: var(--fib-2);
       color: var(--accent-yellow);
       margin-top: var(--fib-5);
-      opacity: 0.85;
+      opacity: 0.9;
     }
 
     /* Gallery Feed */
@@ -161,6 +163,7 @@
       gap: var(--fib-55);
     }
 
+    /* Pure Hardware-Accelerated Lightweight Card */
     .image-slot {
       position: relative;
       width: 100%;
@@ -175,7 +178,8 @@
       overflow: hidden;
       cursor: pointer;
       touch-action: pan-y;
-      transition: border-color 0.28s ease, box-shadow 0.28s ease;
+      contain: layout paint;
+      transition: border-color 0.21s ease, box-shadow 0.21s ease;
     }
 
     .image-slot img {
@@ -184,14 +188,13 @@
       object-fit: cover;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.38s ease-in-out;
+      transition: opacity 0.34s ease-in-out;
     }
 
     .image-slot img.loaded {
       opacity: 1;
     }
 
-    /* Armed Card State */
     .image-slot.armed {
       border-color: var(--glass-highlight);
       box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
@@ -201,27 +204,20 @@
       filter: brightness(0.55);
     }
 
-    /* Action Modal Overlay */
-    .slot-action-overlay {
+    /* Single Reusable Floating Modal (Zero GPU Duplication) */
+    #shared-action-overlay {
       position: absolute;
       inset: 0;
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      visibility: hidden;
-      transition: opacity 0.21s cubic-bezier(0.16, 1, 0.3, 1), transform 0.21s cubic-bezier(0.16, 1, 0.3, 1);
-      transform: scale(0.92);
       z-index: 10;
       padding: var(--fib-13);
+      pointer-events: auto;
     }
 
-    .image-slot.armed .slot-action-overlay {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transform: scale(1);
+    #shared-action-overlay.visible {
+      display: flex;
     }
 
     .slot-action-card {
@@ -526,7 +522,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.6.0</div>
+      <div class="splash-ver">v1.7.0</div>
     </div>
   </div>
 
@@ -538,6 +534,23 @@
   </div>
 
   <main id="gallery-container"></main>
+
+  <!-- Global Single Action Overlay (Attached to active card only when armed) -->
+  <div id="shared-action-overlay">
+    <div class="slot-action-card">
+      <div class="action-btn-row">
+        <button class="btn-slot-action btn-slot-download" id="modal-btn-download" aria-label="Download Wallpaper">
+          <span class="action-emoji">💾</span>
+          <span class="action-label">SAVE</span>
+        </button>
+        <button class="btn-slot-action btn-slot-share" id="modal-btn-share" aria-label="Share Wallpaper Link">
+          <span class="action-emoji">🔗</span>
+          <span class="action-label">SHARE</span>
+        </button>
+      </div>
+      <div class="slot-info-box" id="modal-info-box" title="Click to highlight text"></div>
+    </div>
+  </div>
 
   <nav id="nav-dock">
     <button class="nav-btn" id="btn-hand" aria-label="Toggle Navigation Tray">👈🏼</button>
@@ -562,9 +575,16 @@
     let searchVisible = false;
     let diceDegrees = 0;
     let armedIndex = null;
+    let armLockTimer = null;
     const SLOTS = [];
 
-    // Background procedural texture
+    // Shared Single Overlay Elements
+    const sharedOverlay = document.getElementById('shared-action-overlay');
+    const modalDlBtn = document.getElementById('modal-btn-download');
+    const modalShareBtn = document.getElementById('modal-btn-share');
+    const modalInfoBox = document.getElementById('modal-info-box');
+
+    // Procedural Background Noise
     (function initOrganicTexture() {
       const canvas = document.getElementById('texture-canvas');
       const ctx = canvas.getContext('2d');
@@ -670,23 +690,68 @@
       });
     }
 
+    // Zero-Cost Single Overlay Arming
     function disarmAllSlots() {
+      clearTimeout(armLockTimer);
       if (armedIndex !== null && SLOTS[armedIndex]) {
         SLOTS[armedIndex].classList.remove('armed');
+      }
+      sharedOverlay.classList.remove('visible');
+      if (sharedOverlay.parentNode) {
+        sharedOverlay.parentNode.removeChild(sharedOverlay);
       }
       armedIndex = null;
     }
 
     function armSlot(index) {
+      if (armedIndex === index) {
+        disarmAllSlots();
+        return;
+      }
       disarmAllSlots();
       const slot = SLOTS[index];
-      if (slot) {
-        slot.classList.add('armed');
-        armedIndex = index;
-      }
+      if (!slot) return;
+
+      armedIndex = index;
+      slot.classList.add('armed');
+
+      const file = wallpapers[index];
+      modalInfoBox.textContent = `#${(index + 1).toLocaleString()} | ${file}`;
+
+      slot.appendChild(sharedOverlay);
+      sharedOverlay.classList.add('visible');
+
+      modalDlBtn.style.pointerEvents = 'none';
+      modalShareBtn.style.pointerEvents = 'none';
+      armLockTimer = setTimeout(() => {
+        modalDlBtn.style.pointerEvents = 'auto';
+        modalShareBtn.style.pointerEvents = 'auto';
+      }, 250);
     }
 
-    // Centering calculation for smooth scrolling
+    // Modal Action Bindings
+    sharedOverlay.addEventListener('click', (e) => e.stopPropagation());
+    modalDlBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerDownload(armedIndex);
+      disarmAllSlots();
+    });
+    modalShareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerShare(armedIndex);
+      disarmAllSlots();
+    });
+    modalInfoBox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const sel = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(modalInfoBox);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      showToast('Text Highlighted');
+    });
+
+    // Centering Calculation
     function scrollToSlot(targetSlot, smooth = true) {
       if (!targetSlot) return;
       const rect = targetSlot.getBoundingClientRect();
@@ -697,7 +762,21 @@
       });
     }
 
-    // Lightweight center-detection observer
+    // Robust Non-Destructive Lazy Loader (Preloads 1,000px ahead, never unloads cached images)
+    const lazyObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          if (img.dataset.src && !img.src) {
+            img.src = img.dataset.src;
+            img.onload = () => img.classList.add('loaded');
+          }
+          lazyObserver.unobserve(img);
+        }
+      });
+    }, { rootMargin: '1000px 0px 1000px 0px' });
+
+    // Active Center Detection
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
@@ -734,92 +813,31 @@
         slot.className = 'image-slot';
         slot.dataset.index = index;
 
-        // Clean alt tag: no extension, spaces instead of underscores
         const cleanAlt = file.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
 
         const img = document.createElement('img');
         img.alt = cleanAlt;
-        img.loading = 'lazy';       // Native browser lazy-loading engine
-        img.decoding = 'async';     // Off-thread decode
-        img.src = RAW_IMG_BASE + encodeURIComponent(file);
-        img.onload = () => img.classList.add('loaded');
-
-        const overlay = document.createElement('div');
-        overlay.className = 'slot-action-overlay';
-
-        const actionCard = document.createElement('div');
-        actionCard.className = 'slot-action-card';
-
-        // Action modal clicks never bubble to disarm the card
-        actionCard.addEventListener('click', (e) => e.stopPropagation());
-
-        const btnRow = document.createElement('div');
-        btnRow.className = 'action-btn-row';
-
-        const dlBtn = document.createElement('button');
-        dlBtn.className = 'btn-slot-action btn-slot-download';
-        dlBtn.setAttribute('aria-label', 'Download Wallpaper');
-        dlBtn.innerHTML = '<span class="action-emoji">💾</span><span class="action-label">SAVE</span>';
-
-        dlBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          triggerDownload(index);
-          disarmAllSlots();
-        });
-
-        const shareBtn = document.createElement('button');
-        shareBtn.className = 'btn-slot-action btn-slot-share';
-        shareBtn.setAttribute('aria-label', 'Share Wallpaper Link');
-        shareBtn.innerHTML = '<span class="action-emoji">🔗</span><span class="action-label">SHARE</span>';
-
-        shareBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          triggerShare(index);
-          disarmAllSlots();
-        });
-
-        btnRow.appendChild(dlBtn);
-        btnRow.appendChild(shareBtn);
-
-        const infoBox = document.createElement('div');
-        infoBox.className = 'slot-info-box';
-        infoBox.title = 'Click to highlight text';
-        infoBox.textContent = `#${(index + 1).toLocaleString()} | ${file}`;
-
-        infoBox.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const sel = window.getSelection();
-          const range = document.createRange();
-          range.selectNodeContents(infoBox);
-          sel.removeAllRanges();
-          sel.addRange(range);
-          showToast('Text Highlighted');
-        });
-
-        actionCard.appendChild(btnRow);
-        actionCard.appendChild(infoBox);
-        overlay.appendChild(actionCard);
+        img.decoding = 'async';
+        img.dataset.src = RAW_IMG_BASE + encodeURIComponent(file);
 
         slot.appendChild(img);
-        slot.appendChild(overlay);
-
-        // Immediate responsive click
-        slot.addEventListener('click', (e) => {
-          if (e.target.closest('.slot-action-card')) return;
-          if (armedIndex === index) {
-            disarmAllSlots();
-          } else {
-            armSlot(index);
-          }
-        });
-
         container.appendChild(slot);
         SLOTS.push(slot);
         visibleIndices.push(index);
+
+        lazyObserver.observe(img);
         centerObserver.observe(slot);
       });
 
-      // GET parameter check (?i=56)
+      // Event Delegation: One listener replaces 1,500 individual slot listeners
+      container.addEventListener('click', (e) => {
+        const slot = e.target.closest('.image-slot');
+        if (!slot || e.target.closest('#shared-action-overlay')) return;
+        const idx = parseInt(slot.dataset.index, 10);
+        armSlot(idx);
+      });
+
+      // Direct Query Parameter Parsing (?i=56)
       const urlParams = new URLSearchParams(window.location.search);
       const paramI = urlParams.get('i');
       let initialPos;
@@ -850,7 +868,7 @@
       }, 750);
     }
 
-    // Dismiss active card on external scroll
+    // Dismiss overlay on external scroll or click outside
     window.addEventListener('scroll', () => disarmAllSlots(), { passive: true });
     document.addEventListener('pointerdown', (e) => {
       if (!e.target.closest('.image-slot')) disarmAllSlots();
@@ -1081,6 +1099,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.6.0 -->
+  <!-- 4K WALLPAPERS v1.7.0 -->
 </body>
 </html>
