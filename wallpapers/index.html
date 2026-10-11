@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Francois+One&family=Rubik+Vinyl&display=swap" rel="stylesheet">
 
   <style>
+    /* --- Phi / Fibonacci Natural Scale --- */
     :root {
       --phi: 1.6180339887;
       --fib-1: 1px;
@@ -35,7 +36,7 @@
 
       --glass-bg: rgba(18, 18, 22, 0.68);
       --glass-border: rgba(255, 255, 255, 0.13);
-      --glass-highlight: rgba(255, 255, 255, 0.25);
+      --glass-highlight: rgba(255, 255, 255, 0.34);
       --glass-shadow: 0 var(--fib-8) var(--fib-34) rgba(0, 0, 0, 0.65);
       --font-body: 'Francois One', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-splash: 'Rubik Vinyl', cursive;
@@ -71,13 +72,14 @@
       opacity: 0.45;
     }
 
+    /* Centered Splash Screen */
     #splash-screen {
       position: fixed;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(10, 10, 14, 0.88);
+      background: rgba(10, 10, 14, 0.92);
       backdrop-filter: blur(var(--fib-21));
       -webkit-backdrop-filter: blur(var(--fib-21));
       z-index: 1000;
@@ -121,6 +123,7 @@
       text-transform: uppercase;
     }
 
+    /* Image Gallery Feed */
     #gallery-container {
       position: relative;
       z-index: 1;
@@ -144,7 +147,9 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      transform: translateZ(0);
+      cursor: pointer;
+      touch-action: pan-y;
+      transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.21s ease;
     }
 
     .image-slot img {
@@ -152,13 +157,80 @@
       height: 100%;
       object-fit: cover;
       opacity: 0;
-      transition: opacity 0.34s ease-in-out;
+      pointer-events: none;
+      transition: opacity 0.34s ease-in-out, filter 0.28s ease;
     }
 
     .image-slot img.loaded {
       opacity: 1;
     }
 
+    /* Active Armed State: Glass Highlight & Scrim */
+    .image-slot.armed {
+      border-color: var(--glass-highlight);
+      box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
+    }
+
+    .image-slot.armed img {
+      filter: brightness(0.65);
+    }
+
+    /* Armed Action Overlay */
+    .slot-action-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.21s cubic-bezier(0.16, 1, 0.3, 1), transform 0.21s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: scale(0.92);
+      z-index: 10;
+    }
+
+    .image-slot.armed .slot-action-overlay {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .btn-slot-download {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--fib-5);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-highlight);
+      border-radius: var(--fib-21);
+      padding: var(--fib-13) var(--fib-34);
+      backdrop-filter: blur(var(--fib-21));
+      -webkit-backdrop-filter: blur(var(--fib-21));
+      box-shadow: var(--glass-shadow);
+      cursor: pointer;
+      transition: transform 0.13s ease, background 0.13s ease;
+    }
+
+    .btn-slot-download:active {
+      transform: scale(0.94);
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn-slot-download .save-emoji {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .btn-slot-download .save-label {
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      letter-spacing: var(--fib-2);
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    /* Glass Pills (Info & Search) */
     .glass-pill {
       position: fixed;
       bottom: calc(var(--fib-21) + var(--nav-dock-height) + var(--info-dock-gap) + env(safe-area-inset-bottom));
@@ -225,6 +297,7 @@
       padding: 0 var(--fib-5);
     }
 
+    /* Fixed Bottom Navigation */
     #nav-dock {
       position: fixed;
       bottom: calc(var(--fib-21) + env(safe-area-inset-bottom));
@@ -368,8 +441,10 @@
     let infoVisible = false;
     let searchVisible = false;
     let diceDegrees = 0;
+    let armedIndex = null;
     const SLOTS = [];
 
+    // 1. Procedural Texture
     (function initOrganicTexture() {
       const canvas = document.getElementById('texture-canvas');
       const ctx = canvas.getContext('2d');
@@ -391,6 +466,7 @@
       canvas.style.backgroundSize = '128px 128px';
     })();
 
+    // 2. Dice Rotation
     const diceEl = document.getElementById('dice');
     diceDegrees = Math.floor(Math.random() * 10) * 36;
     diceEl.style.transform = `rotate(${diceDegrees}deg)`;
@@ -400,6 +476,7 @@
       diceEl.style.transform = `rotate(${diceDegrees}deg)`;
     }
 
+    // 3. Toast
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
@@ -407,6 +484,39 @@
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
 
+    // 4. Download Execution
+    function triggerDownload(index) {
+      const filename = wallpapers[index];
+      if (!filename) return;
+      const rawUrl = RAW_IMG_BASE + encodeURIComponent(filename);
+      const a = document.createElement('a');
+      a.href = rawUrl;
+      a.download = filename;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('Downloading...');
+    }
+
+    // 5. Arm / Disarm Card Management
+    function disarmCurrentSlot() {
+      if (armedIndex !== null && SLOTS[armedIndex]) {
+        SLOTS[armedIndex].classList.remove('armed');
+        armedIndex = null;
+      }
+    }
+
+    function armSlot(index) {
+      if (armedIndex === index) return;
+      disarmCurrentSlot();
+      if (SLOTS[index]) {
+        SLOTS[index].classList.add('armed');
+        armedIndex = index;
+      }
+    }
+
+    // 6. Memory Budget
     function updateActiveMemoryBudget(visiblePos) {
       if (visibleIndices.length === 0) return;
       currentIndex = visibleIndices[visiblePos];
@@ -434,6 +544,7 @@
       document.getElementById('info-pill').textContent = `#${(currentIndex + 1).toLocaleString()} | ${activeFile}`;
     }
 
+    // 7. Intersection Observer
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
@@ -444,6 +555,7 @@
       });
     }, { rootMargin: '-40% 0px -40% 0px', threshold: 0 });
 
+    // 8. Bootstrap
     async function loadWallpapers() {
       try {
         const res = await fetch(MANIFEST_URL);
@@ -476,7 +588,45 @@
         img.alt = file;
         img.loading = 'eager';
 
+        // Action Overlay with Centered Glass Download Badge
+        const overlay = document.createElement('div');
+        overlay.className = 'slot-action-overlay';
+
+        const dlBtn = document.createElement('div');
+        dlBtn.className = 'btn-slot-download';
+        dlBtn.innerHTML = '<span class="save-emoji">💾</span><span class="save-label">Save 4K</span>';
+
+        dlBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+        dlBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          triggerDownload(index);
+          disarmCurrentSlot();
+        });
+
+        overlay.appendChild(dlBtn);
         slot.appendChild(img);
+        slot.appendChild(overlay);
+
+        // Tap/Click vs. Scroll Drag Filter
+        let startX = 0;
+        let startY = 0;
+
+        slot.addEventListener('pointerdown', (e) => {
+          startX = e.clientX;
+          startY = e.clientY;
+        });
+
+        slot.addEventListener('pointerup', (e) => {
+          const delta = Math.hypot(e.clientX - startX, e.clientY - startY);
+          if (delta < 8) {
+            if (armedIndex === index) {
+              disarmCurrentSlot();
+            } else {
+              armSlot(index);
+            }
+          }
+        });
+
         container.appendChild(slot);
         SLOTS.push(slot);
         visibleIndices.push(index);
@@ -489,16 +639,29 @@
       SLOTS[initialPos].scrollIntoView({ block: 'center' });
       updateActiveMemoryBudget(initialPos);
 
+      // Await Google Fonts parsing to eliminate unstyled fallback flashes
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+
       setTimeout(() => {
         document.getElementById('splash-screen').classList.add('dismissed');
       }, 750);
     }
 
+    // Dismiss armed state on external scroll or click outside
+    window.addEventListener('scroll', () => disarmCurrentSlot(), { passive: true });
+    document.addEventListener('pointerdown', (e) => {
+      if (!e.target.closest('.image-slot')) disarmCurrentSlot();
+    });
+
+    // 9. Navigation
     function scrollToVisiblePosition(vPos) {
       if (visibleIndices.length === 0) return;
       if (vPos < 0) vPos = visibleIndices.length - 1;
       else if (vPos >= visibleIndices.length) vPos = 0;
 
+      disarmCurrentSlot();
       const targetSlot = SLOTS[visibleIndices[vPos]];
       targetSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -568,6 +731,7 @@
     searchBtn.addEventListener('click', () => toggleSearch());
 
     function applySearchFilter(query, showFeedback = true) {
+      disarmCurrentSlot();
       const trimmed = query.trim();
       const directMatch = trimmed.match(/^#(\d[\d,]*)$/);
       if (directMatch) {
@@ -634,16 +798,7 @@
     });
 
     document.getElementById('btn-save').addEventListener('click', () => {
-      const activeFile = wallpapers[currentIndex];
-      const rawUrl = RAW_IMG_BASE + encodeURIComponent(activeFile);
-      const a = document.createElement('a');
-      a.href = rawUrl;
-      a.download = activeFile;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast('Downloading...');
+      triggerDownload(currentIndex);
     });
 
     window.addEventListener('keydown', (e) => {
@@ -665,6 +820,7 @@
       } else if (e.key === 'Escape') {
         if (infoVisible) document.getElementById('btn-info').click();
         if (searchVisible) toggleSearch(false);
+        disarmCurrentSlot();
       }
     });
 
