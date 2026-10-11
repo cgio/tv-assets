@@ -239,7 +239,8 @@
       top: calc(var(--fib-55) + env(safe-area-inset-top));
     }
 
-    body.search-open #toast {
+    body.search-open #toast,
+    body.search-open.filter-active #toast {
       top: calc(var(--fib-89) + var(--fib-21) + env(safe-area-inset-top));
     }
 
@@ -287,6 +288,7 @@
       z-index: 1;
     }
 
+    /* Suppresses browser alt-text leakage across Gecko / WebKit */
     .image-slot img {
       position: relative;
       z-index: 2;
@@ -294,6 +296,8 @@
       height: 100%;
       object-fit: cover;
       opacity: 0;
+      color: transparent;
+      font-size: 0;
       pointer-events: none;
       transition: opacity 0.28s ease-in-out;
     }
@@ -617,7 +621,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.9.5</div>
+      <div class="splash-ver">v1.9.6</div>
     </div>
   </div>
 
@@ -1110,16 +1114,19 @@
     }
 
     document.getElementById('btn-prev').addEventListener('click', () => {
+      if (searchVisible) toggleSearch(false);
       const curVPos = visibleIndices.indexOf(currentIndex);
       scrollToVisiblePosition(curVPos - 1, true);
     });
 
     document.getElementById('btn-next').addEventListener('click', () => {
+      if (searchVisible) toggleSearch(false);
       const curVPos = visibleIndices.indexOf(currentIndex);
       scrollToVisiblePosition(curVPos + 1, true);
     });
 
     document.getElementById('btn-random').addEventListener('click', () => {
+      if (searchVisible) toggleSearch(false);
       if (visibleIndices.length <= 1) return;
       stepDiceRotation();
 
@@ -1138,6 +1145,7 @@
     });
 
     document.getElementById('btn-action').addEventListener('click', () => {
+      if (searchVisible) toggleSearch(false);
       if (armedIndex === currentIndex) {
         disarmAllSlots();
       } else {
@@ -1165,7 +1173,9 @@
 
     function setHandMode(left) {
       isLeftHanded = left;
-      document.body.className = (isLeftHanded ? 'hand-left' : 'hand-right') + (isCollapsed ? ' dock-collapsed' : '');
+      document.body.classList.toggle('hand-left', isLeftHanded);
+      document.body.classList.toggle('hand-right', !isLeftHanded);
+      document.body.classList.toggle('dock-collapsed', isCollapsed);
       updateControlsOrientation();
       showToast(isLeftHanded ? 'Left-handed Mode' : 'Right-handed Mode');
     }
@@ -1271,7 +1281,6 @@
         scrollToSlot(SLOTS[targetIdx], true);
         showToast(`Wallpaper #${num.toLocaleString()}`);
         toggleSearch(false);
-        schedulePostScrollPrune();
       } else {
         showToast(`Out of range (1–${wallpapers.length.toLocaleString()})`);
       }
@@ -1358,6 +1367,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.9.5 -->
+  <!-- 4K WALLPAPERS v1.9.6 -->
 </body>
 </html>
