@@ -162,7 +162,7 @@
       gap: var(--fib-55);
     }
 
-    /* Virtualized Card: Zero box-shadow for optimal GPU throughput */
+    /* Hardware-Accelerated Card Slot */
     .image-slot {
       position: relative;
       width: 100%;
@@ -524,7 +524,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.9.1</div>
+      <div class="splash-ver">v1.9.2</div>
     </div>
   </div>
 
@@ -587,6 +587,14 @@
     const modalShareBtn = document.getElementById('modal-btn-share');
     const modalInfoBox = document.getElementById('modal-info-box');
 
+    // Engine-level Apple Mobile capability probe across all browsers
+    function isAppleMobile() {
+      const ua = navigator.userAgent;
+      if (/iPad|iPhone|iPod/.test(ua)) return true;
+      if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
+      return false;
+    }
+
     // Procedural Background Texture
     (function initOrganicTexture() {
       const canvas = document.getElementById('texture-canvas');
@@ -625,7 +633,7 @@
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
 
-    // Convert WebP to JPEG on-the-fly for iOS PhotoKit Wallpaper Picker compatibility
+    // Convert WebP to JPEG on-the-fly strictly for Apple Photos / Wallpaper Picker
     async function convertWebPToJpeg(blob, originalFilename) {
       return new Promise((resolve) => {
         const img = new Image();
@@ -654,7 +662,7 @@
       });
     }
 
-    // Direct Download & iOS Native Photos Saver
+    // Direct Download & Adaptive Share
     async function triggerDownload(index) {
       const filename = wallpapers[index];
       if (!filename) return;
@@ -663,7 +671,15 @@
       try {
         const res = await fetch(rawUrl);
         const blob = await res.blob();
-        const file = await convertWebPToJpeg(blob, filename);
+
+        let file;
+        if (isAppleMobile()) {
+          // Apple PhotoKit extension wallpaper visibility fix
+          file = await convertWebPToJpeg(blob, filename);
+        } else {
+          // Native compact WebP for Android (Pixel 10 Pro), Desktop, etc.
+          file = new File([blob], filename, { type: 'image/webp' });
+        }
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
@@ -782,7 +798,7 @@
       showToast('Text Highlighted');
     });
 
-    // Programmatic centering with scroll-guard flag
+    // Programmatic Centering with Scroll Guard
     function scrollToSlot(targetSlot, smooth = true) {
       if (!targetSlot) return;
       const rect = targetSlot.getBoundingClientRect();
@@ -811,11 +827,12 @@
       }
     }
 
+    // Extended Buffer: Hydrate current + 3 adjacent in each direction (7 cards in RAM)
     function updateActiveWindow(centerPos) {
       if (visibleIndices.length === 0) return;
       currentIndex = visibleIndices[centerPos];
 
-      for (let offset = -2; offset <= 2; offset++) {
+      for (let offset = -3; offset <= 3; offset++) {
         const pos = centerPos + offset;
         if (pos >= 0 && pos < visibleIndices.length) {
           hydrateSlot(visibleIndices[pos]);
@@ -823,6 +840,7 @@
       }
     }
 
+    // Post-Scroll VRAM Eviction: Prunes unneeded bitmaps once motion has stopped
     function schedulePostScrollPrune() {
       clearTimeout(pruneTimer);
       pruneTimer = setTimeout(() => {
@@ -830,7 +848,7 @@
         if (centerPos === -1) return;
 
         const keepWindow = new Set();
-        for (let offset = -2; offset <= 2; offset++) {
+        for (let offset = -3; offset <= 3; offset++) {
           const pos = centerPos + offset;
           if (pos >= 0 && pos < visibleIndices.length) {
             keepWindow.add(visibleIndices[pos]);
@@ -947,7 +965,7 @@
       }, 750);
     }
 
-    // Scroll listener: disarm only when scrolling is manual
+    // Scroll listener: disarm only when user manually touches/drags
     window.addEventListener('scroll', () => {
       if (armedIndex !== null && !isProgrammaticScroll) {
         disarmAllSlots();
@@ -1189,6 +1207,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.9.1 -->
+  <!-- 4K WALLPAPERS v1.9.2 -->
 </body>
 </html>
