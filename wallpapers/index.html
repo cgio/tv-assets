@@ -152,17 +152,22 @@
       transition: border-color 0.28s ease, box-shadow 0.28s ease;
     }
 
+    /* Image Tag: Completely suppress broken icon / alt text flashes */
     .image-slot img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       opacity: 0;
+      visibility: hidden;
+      color: transparent;
+      font-size: 0;
       pointer-events: none;
       transition: opacity 0.34s ease-in-out, filter 0.28s ease;
     }
 
     .image-slot img.loaded {
       opacity: 1;
+      visibility: visible;
     }
 
     .image-slot.armed {
@@ -174,7 +179,7 @@
       filter: brightness(0.65);
     }
 
-    /* Overlay: display: none when unarmed eliminates ghost taps entirely */
+    /* Save Overlay */
     .slot-action-overlay {
       position: absolute;
       inset: 0;
@@ -354,13 +359,14 @@
     body.hand-right #btn-prev   { order: 7; }
     body.hand-right #btn-next   { order: 8; }
 
+    /* Left-handed Desktop: Swapped search (5) and copy (7) */
     body.hand-left #btn-prev   { order: 1; }
     body.hand-left #btn-next   { order: 2; }
     body.hand-left #btn-random { order: 3; }
     body.hand-left #btn-save   { order: 4; }
-    body.hand-left #btn-copy   { order: 5; }
+    body.hand-left #btn-search { order: 5; }
     body.hand-left #btn-info   { order: 6; }
-    body.hand-left #btn-search { order: 7; }
+    body.hand-left #btn-copy   { order: 7; }
     body.hand-left #btn-hand   { order: 8; }
 
     .nav-btn {
@@ -426,7 +432,7 @@
         overflow: hidden;
       }
 
-      /* Right-handed Grid: Anchored right, [⬅️][➡️] consistent order */
+      /* Right-handed Grid */
       body.hand-right #nav-dock {
         justify-content: end;
       }
@@ -439,17 +445,17 @@
       body.hand-right #btn-info   { grid-column: 1; grid-row: 1; }
       body.hand-right #btn-prev   { grid-column: 1; grid-row: 2; }
 
-      /* Left-handed Grid: Anchored left, [⬅️][➡️] consistent order */
+      /* Left-handed Grid: Swapped search (Col 4) and copy (Col 2) */
       body.hand-left #nav-dock {
         justify-content: start;
       }
       body.hand-left #btn-hand   { grid-column: 1; grid-row: 1; }
       body.hand-left #btn-save   { grid-column: 1; grid-row: 2; }
-      body.hand-left #btn-search { grid-column: 2; grid-row: 1; }
+      body.hand-left #btn-copy   { grid-column: 2; grid-row: 1; }
       body.hand-left #btn-random { grid-column: 2; grid-row: 2; }
       body.hand-left #btn-info   { grid-column: 3; grid-row: 1; }
       body.hand-left #btn-prev   { grid-column: 3; grid-row: 2; }
-      body.hand-left #btn-copy   { grid-column: 4; grid-row: 1; }
+      body.hand-left #btn-search { grid-column: 4; grid-row: 1; }
       body.hand-left #btn-next   { grid-column: 4; grid-row: 2; }
 
       body.dock-collapsed #nav-dock {
@@ -509,6 +515,7 @@
     let searchVisible = false;
     let diceDegrees = 0;
     let armedIndex = null;
+    let armedTimestamp = 0;
     const SLOTS = [];
 
     (function initOrganicTexture() {
@@ -566,6 +573,7 @@
       if (armedIndex !== null && SLOTS[armedIndex]) {
         SLOTS[armedIndex].classList.remove('armed');
         armedIndex = null;
+        armedTimestamp = 0;
       }
     }
 
@@ -575,6 +583,7 @@
       if (SLOTS[index]) {
         SLOTS[index].classList.add('armed');
         armedIndex = index;
+        armedTimestamp = Date.now();
       }
     }
 
@@ -657,7 +666,8 @@
         dlBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
         dlBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (armedIndex !== index) return;
+          // Block Chromium ghost clicks from the initial arm tap
+          if (armedIndex !== index || Date.now() - armedTimestamp < 400) return;
           triggerDownload(index);
           disarmCurrentSlot();
         });
@@ -668,20 +678,26 @@
 
         let startX = 0;
         let startY = 0;
+        let isSlotDrag = false;
 
         slot.addEventListener('pointerdown', (e) => {
           startX = e.clientX;
           startY = e.clientY;
+          isSlotDrag = false;
         });
 
-        slot.addEventListener('pointerup', (e) => {
-          const delta = Math.hypot(e.clientX - startX, e.clientY - startY);
-          if (delta < 8) {
-            if (armedIndex === index) {
-              disarmCurrentSlot();
-            } else {
-              armSlot(index);
-            }
+        slot.addEventListener('pointermove', (e) => {
+          if (Math.hypot(e.clientX - startX, e.clientY - startY) > 10) {
+            isSlotDrag = true;
+          }
+        });
+
+        slot.addEventListener('click', (e) => {
+          if (isSlotDrag) return;
+          if (armedIndex === index) {
+            disarmCurrentSlot();
+          } else {
+            armSlot(index);
           }
         });
 
@@ -865,7 +881,7 @@
     function applySearchFilter(query) {
       disarmCurrentSlot();
       const trimmed = query.trim();
-      if (trimmed.startsWith('#')) return; // Await Enter key for direct number jump
+      if (trimmed.startsWith('#')) return;
 
       const q = trimmed.toLowerCase();
       visibleIndices = [];
