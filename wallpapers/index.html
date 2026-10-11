@@ -296,8 +296,9 @@
       height: 100%;
       object-fit: cover;
       opacity: 0;
-      color: transparent;
-      font-size: 0;
+      color: transparent !important;
+      font-size: 0 !important;
+      line-height: 0 !important;
       pointer-events: none;
       transition: opacity 0.28s ease-in-out;
     }
@@ -621,7 +622,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.9.6</div>
+      <div class="splash-ver">v1.9.7</div>
     </div>
   </div>
 
@@ -956,9 +957,21 @@
       }
     }
 
+    function updateActiveWindow(centerPos) {
+      if (visibleIndices.length === 0) return;
+      currentIndex = visibleIndices[centerPos];
+
+      for (let offset = -5; offset <= 5; offset++) {
+        const pos = centerPos + offset;
+        if (pos >= 0 && pos < visibleIndices.length) {
+          hydrateSlot(visibleIndices[pos]);
+        }
+      }
+    }
+
     function pruneOutsideWindow(centerPos) {
       const keepWindow = new Set();
-      for (let offset = -4; offset <= 4; offset++) {
+      for (let offset = -6; offset <= 6; offset++) {
         const pos = centerPos + offset;
         if (pos >= 0 && pos < visibleIndices.length) {
           keepWindow.add(visibleIndices[pos]);
@@ -995,7 +1008,11 @@
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
-          currentIndex = entry.target._index;
+          const slotIdx = entry.target._index;
+          const vPos = visibleIndices.indexOf(slotIdx);
+          if (vPos !== -1) {
+            updateActiveWindow(vPos);
+          }
         }
       });
     }, { rootMargin: '-35% 0px -35% 0px' });
@@ -1073,7 +1090,7 @@
       }
 
       currentIndex = initialPos;
-      hydrateSlot(initialPos);
+      updateActiveWindow(visibleIndices.indexOf(initialPos));
       scrollToSlot(SLOTS[initialPos], false);
       updateControlsOrientation();
 
@@ -1109,7 +1126,7 @@
       currentIndex = targetIdx;
 
       pruneOutsideWindow(vPos);
-      hydrateSlot(targetIdx);
+      updateActiveWindow(vPos);
       scrollToSlot(SLOTS[targetIdx], smooth);
     }
 
@@ -1277,10 +1294,11 @@
         });
         currentIndex = targetIdx;
         pruneOutsideWindow(targetIdx);
-        hydrateSlot(targetIdx);
+        updateActiveWindow(targetIdx);
         scrollToSlot(SLOTS[targetIdx], true);
         showToast(`Wallpaper #${num.toLocaleString()}`);
         toggleSearch(false);
+        schedulePostScrollPrune();
       } else {
         showToast(`Out of range (1–${wallpapers.length.toLocaleString()})`);
       }
@@ -1312,6 +1330,8 @@
       if (visibleIndices.length > 0) {
         if (!visibleIndices.includes(currentIndex)) {
           scrollToVisiblePosition(0, false);
+        } else {
+          updateActiveWindow(visibleIndices.indexOf(currentIndex));
         }
         if (q) showToast(`${visibleIndices.length.toLocaleString()} Matches`);
       } else {
@@ -1367,6 +1387,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.9.6 -->
+  <!-- 4K WALLPAPERS v1.9.7 -->
 </body>
 </html>
