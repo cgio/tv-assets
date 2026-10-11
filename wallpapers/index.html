@@ -50,6 +50,16 @@
       user-select: none;
     }
 
+    /* High-Contrast Golden-Yellow Selection */
+    ::selection {
+      background: #ffe066 !important;
+      color: #0c0d10 !important;
+    }
+    ::-moz-selection {
+      background: #ffe066 !important;
+      color: #0c0d10 !important;
+    }
+
     body {
       background-color: #0c0d10;
       color: #f5f5f7;
@@ -152,7 +162,6 @@
       transition: border-color 0.28s ease, box-shadow 0.28s ease;
     }
 
-    /* Image Tag: Completely suppress broken icon / alt text flashes */
     .image-slot img {
       width: 100%;
       height: 100%;
@@ -179,11 +188,11 @@
       filter: brightness(0.65);
     }
 
-    /* Save Overlay */
+    /* Save Overlay Container */
     .slot-action-overlay {
       position: absolute;
       inset: 0;
-      display: none;
+      display: flex;
       align-items: center;
       justify-content: center;
       opacity: 0;
@@ -195,14 +204,12 @@
     }
 
     .image-slot.armed .slot-action-overlay {
-      display: flex;
       opacity: 1;
-      pointer-events: auto;
       visibility: visible;
       transform: scale(1);
     }
 
-    /* Save Badge */
+    /* Save Badge: Default pointer-events: none prevents ghost clicks */
     .btn-slot-download {
       display: flex;
       flex-direction: column;
@@ -217,6 +224,7 @@
       -webkit-backdrop-filter: blur(var(--fib-21));
       box-shadow: var(--glass-shadow);
       cursor: pointer;
+      pointer-events: none;
       transition: transform 0.13s ease, background 0.13s ease;
     }
 
@@ -312,7 +320,7 @@
       padding: 0 var(--fib-5);
     }
 
-    /* Fixed Navigation Dock Container */
+    /* Fixed Navigation Dock */
     #nav-dock {
       position: fixed;
       bottom: calc(var(--fib-21) + env(safe-area-inset-bottom));
@@ -336,7 +344,7 @@
       cursor: grabbing;
     }
 
-    /* Handedness Dock Positions */
+    /* Dock Positions */
     body.hand-right #nav-dock,
     body.hand-right .glass-pill {
       right: var(--fib-21);
@@ -359,14 +367,14 @@
     body.hand-right #btn-prev   { order: 7; }
     body.hand-right #btn-next   { order: 8; }
 
-    /* Left-handed Desktop: Swapped search (5) and copy (7) */
+    /* Left-handed Desktop: Mirrored order */
     body.hand-left #btn-prev   { order: 1; }
     body.hand-left #btn-next   { order: 2; }
     body.hand-left #btn-random { order: 3; }
     body.hand-left #btn-save   { order: 4; }
-    body.hand-left #btn-search { order: 5; }
-    body.hand-left #btn-info   { order: 6; }
-    body.hand-left #btn-copy   { order: 7; }
+    body.hand-left #btn-info   { order: 5; }
+    body.hand-left #btn-copy   { order: 6; }
+    body.hand-left #btn-search { order: 7; }
     body.hand-left #btn-hand   { order: 8; }
 
     .nav-btn {
@@ -432,7 +440,7 @@
         overflow: hidden;
       }
 
-      /* Right-handed Grid */
+      /* Right-handed Grid: Anchored right */
       body.hand-right #nav-dock {
         justify-content: end;
       }
@@ -445,17 +453,17 @@
       body.hand-right #btn-info   { grid-column: 1; grid-row: 1; }
       body.hand-right #btn-prev   { grid-column: 1; grid-row: 2; }
 
-      /* Left-handed Grid: Swapped search (Col 4) and copy (Col 2) */
+      /* Left-handed Grid: Anchored left: [👈🏼][🔎][📋][ℹ️] on Row 1 */
       body.hand-left #nav-dock {
         justify-content: start;
       }
       body.hand-left #btn-hand   { grid-column: 1; grid-row: 1; }
       body.hand-left #btn-save   { grid-column: 1; grid-row: 2; }
-      body.hand-left #btn-copy   { grid-column: 2; grid-row: 1; }
+      body.hand-left #btn-search { grid-column: 2; grid-row: 1; }
       body.hand-left #btn-random { grid-column: 2; grid-row: 2; }
-      body.hand-left #btn-info   { grid-column: 3; grid-row: 1; }
+      body.hand-left #btn-copy   { grid-column: 3; grid-row: 1; }
       body.hand-left #btn-prev   { grid-column: 3; grid-row: 2; }
-      body.hand-left #btn-search { grid-column: 4; grid-row: 1; }
+      body.hand-left #btn-info   { grid-column: 4; grid-row: 1; }
       body.hand-left #btn-next   { grid-column: 4; grid-row: 2; }
 
       body.dock-collapsed #nav-dock {
@@ -515,7 +523,7 @@
     let searchVisible = false;
     let diceDegrees = 0;
     let armedIndex = null;
-    let armedTimestamp = 0;
+    let armLockTimer = null;
     const SLOTS = [];
 
     (function initOrganicTexture() {
@@ -555,35 +563,65 @@
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
 
-    function triggerDownload(index) {
+    // Direct Blob Fetch: Guarantees authentic file download across mobile browsers
+    async function triggerDownload(index) {
       const filename = wallpapers[index];
       if (!filename) return;
-      const rawUrl = RAW_IMG_BASE + encodeURIComponent(filename);
-      const a = document.createElement('a');
-      a.href = rawUrl;
-      a.download = filename;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
       showToast('Downloading...');
+      const rawUrl = RAW_IMG_BASE + encodeURIComponent(filename);
+      try {
+        const res = await fetch(rawUrl);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      } catch (err) {
+        const a = document.createElement('a');
+        a.href = rawUrl;
+        a.download = filename;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     }
 
     function disarmCurrentSlot() {
+      if (armLockTimer) {
+        clearTimeout(armLockTimer);
+        armLockTimer = null;
+      }
       if (armedIndex !== null && SLOTS[armedIndex]) {
-        SLOTS[armedIndex].classList.remove('armed');
+        const slot = SLOTS[armedIndex];
+        slot.classList.remove('armed');
+        const dlBtn = slot.querySelector('.btn-slot-download');
+        if (dlBtn) dlBtn.style.pointerEvents = 'none';
         armedIndex = null;
-        armedTimestamp = 0;
       }
     }
 
     function armSlot(index) {
       if (armedIndex === index) return;
       disarmCurrentSlot();
-      if (SLOTS[index]) {
-        SLOTS[index].classList.add('armed');
+      const slot = SLOTS[index];
+      if (slot) {
+        slot.classList.add('armed');
         armedIndex = index;
-        armedTimestamp = Date.now();
+        const dlBtn = slot.querySelector('.btn-slot-download');
+        if (dlBtn) {
+          dlBtn.style.pointerEvents = 'none';
+          // 450ms lockout completely prevents synthetic click triggers
+          armLockTimer = setTimeout(() => {
+            if (armedIndex === index) {
+              dlBtn.style.pointerEvents = 'auto';
+            }
+          }, 450);
+        }
       }
     }
 
@@ -663,11 +701,8 @@
         dlBtn.className = 'btn-slot-download';
         dlBtn.innerHTML = '<span class="save-emoji">💾</span><span class="save-label">SAVE</span>';
 
-        dlBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
         dlBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          // Block Chromium ghost clicks from the initial arm tap
-          if (armedIndex !== index || Date.now() - armedTimestamp < 400) return;
           triggerDownload(index);
           disarmCurrentSlot();
         });
