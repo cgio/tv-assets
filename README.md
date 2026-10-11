@@ -58,7 +58,8 @@ For various Projectivy (ChillHub wallpaper) plugins/apps:
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/projectivy_plugin.png"`
 
 ### 3. `wallpapers/`
-Static background imagery for leanback television home screens.
+Static background imagery for leanback television home screens. This repo's wallpaper website:
+* `https://cgio.github.io/tv-assets/wallpapers/`
 
 ### 4. Releases (`apks`)
 The repository's [Releases area](https://github.com/cgio/tv-assets/releases/tag/apks) hosts television-ready Android package builds (`armeabi-v7a` / `nodpi`) for device provisioning via TV Bro or ADB.
@@ -82,6 +83,3 @@ Providing device is cloaked (confirm via no access to system menu), restore devi
 If Cloaked and Restore were upgraded or not available, migrate_stick.sh is backup:
 * `adb push ~/Downloads/migrate_stick.sh /data/local/tmp/`
 * `adb shell su -c "sh /data/local/tmp/migrate_stick.sh"`
-
-### 8. This Repo's Wallpaper Website
-* `https://cgio.github.io/tv-assets/wallpapers/`
