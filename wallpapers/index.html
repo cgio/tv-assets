@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>4K WALLPAPERS</title>
 
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖼️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Francois+One&family=Rubik+Vinyl&display=swap" rel="stylesheet">
@@ -83,10 +84,14 @@
       opacity: 0.45;
     }
 
-    /* Viewport Vignette: Edge Depth Falloff */
+    /* Keyboard-Stable Viewport Vignette */
     #vignette-overlay {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: calc(100lvh + 100px);
+      min-height: 100vh;
       pointer-events: none;
       z-index: 2;
       transform: translateZ(0);
@@ -98,11 +103,11 @@
         rgba(12, 13, 16, 0) 28%,
         rgba(12, 13, 16, 0) 72%,
         rgba(12, 13, 16, 0.48) 87%,
-        rgba(12, 13, 16, 0.92) 100%
+        rgba(12, 13, 16, 0.95) 100%
       );
     }
 
-    /* Centered Splash Screen */
+    /* Splash Screen */
     #splash-screen {
       position: fixed;
       inset: 0;
@@ -206,7 +211,6 @@
       visibility: visible;
     }
 
-    /* Armed Card */
     .image-slot.armed {
       border-color: var(--glass-highlight);
       box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
@@ -238,7 +242,6 @@
       transform: scale(1);
     }
 
-    /* Action Modal Card */
     .slot-action-card {
       display: flex;
       flex-direction: column;
@@ -246,6 +249,7 @@
       justify-content: center;
       gap: var(--fib-13);
       max-width: 100%;
+      pointer-events: auto;
     }
 
     .action-btn-row {
@@ -313,8 +317,10 @@
       color: #e5e5ea;
       max-width: min(calc(100vw - var(--fib-55)), var(--fib-610));
       word-break: break-all;
-      user-select: text;
-      cursor: pointer;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      cursor: text;
       text-align: center;
       line-height: 1.3;
       transition: border-color 0.21s ease;
@@ -422,7 +428,7 @@
     }
 
     /* Desktop Horizontal Ordering (6 buttons) */
-    /* Right-Docked: [ 👈🏼 ] [ 🔍 ] [ 🎲 ] [ ☑️ ] [ ⬅️ ] [ ➡️ ] */
+    /* Right-Docked: [ 👈🏼 ] [ 🔍 ] [ 🎲 ] [ ✅ ] [ ⬅️ ] [ ➡️ ] */
     body.hand-right #btn-hand   { order: 1; }
     body.hand-right #btn-search { order: 2; }
     body.hand-right #btn-random { order: 3; }
@@ -430,7 +436,7 @@
     body.hand-right #btn-prev   { order: 5; }
     body.hand-right #btn-next   { order: 6; }
 
-    /* Left-Docked: [ ⬅️ ] [ ➡️ ] [ ☑️ ] [ 🎲 ] [ 🔎 ] [ 👉🏼 ] */
+    /* Left-Docked: [ ⬅️ ] [ ➡️ ] [ ✅ ] [ 🎲 ] [ 🔎 ] [ 👉🏼 ] */
     body.hand-left #btn-prev   { order: 1; }
     body.hand-left #btn-next   { order: 2; }
     body.hand-left #btn-action { order: 3; }
@@ -503,7 +509,7 @@
 
       /* Right-Docked Grid:
          Row 1: [ 🔍 ] [ 🎲 ] [ 👉🏼 ]
-         Row 2: [ ⬅️ ] [ ➡️ ] [ ☑️ ] */
+         Row 2: [ ⬅️ ] [ ➡️ ] [ ✅ ] */
       body.hand-right #nav-dock {
         justify-content: end;
       }
@@ -517,7 +523,7 @@
 
       /* Left-Docked Grid:
          Row 1: [ 👈🏼 ] [ 🎲 ] [ 🔎 ]
-         Row 2: [ ☑️ ] [ ⬅️ ] [ ➡️ ] */
+         Row 2: [ ✅ ] [ ⬅️ ] [ ➡️ ] */
       body.hand-left #nav-dock {
         justify-content: start;
       }
@@ -529,7 +535,7 @@
       body.hand-left #btn-prev   { grid-column: 2; grid-row: 2; }
       body.hand-left #btn-next   { grid-column: 3; grid-row: 2; }
 
-      /* Mobile XS Collapsed: Exactly 1 column width */
+      /* Mobile XS Collapsed */
       body.dock-collapsed #nav-dock {
         width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
       }
@@ -564,7 +570,7 @@
     <button class="nav-btn" id="btn-hand" aria-label="Toggle Navigation Tray">👈🏼</button>
     <button class="nav-btn" id="btn-search" aria-label="Search Collection">🔍</button>
     <button class="nav-btn" id="btn-random" aria-label="Random Wallpaper"><span class="dice-icon" id="dice">🎲</span></button>
-    <button class="nav-btn" id="btn-action" aria-label="Open Wallpaper Menu">☑️</button>
+    <button class="nav-btn" id="btn-action" aria-label="Open Wallpaper Menu">✅</button>
     <button class="nav-btn" id="btn-prev" aria-label="Previous Wallpaper">⬅️</button>
     <button class="nav-btn" id="btn-next" aria-label="Next Wallpaper">➡️</button>
   </nav>
@@ -584,7 +590,6 @@
     let diceDegrees = 0;
     let armedIndex = null;
     let armLockTimer = null;
-    let currentActiveWindow = new Set();
     const SLOTS = [];
 
     (function initOrganicTexture() {
@@ -635,7 +640,6 @@
         const blob = await res.blob();
         const file = new File([blob], filename, { type: 'image/webp' });
 
-        // iOS Safari / Web Share API with Files: Native Photos Camera Roll & Wallpaper setter
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
@@ -645,7 +649,6 @@
           return;
         }
 
-        // Standard Blob Download (Android, Desktop Chrome/Firefox)
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
@@ -656,7 +659,7 @@
         setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
         showToast('Downloading...');
       } catch (err) {
-        if (err.name === 'AbortError') return; // User closed iOS share sheet cleanly
+        if (err.name === 'AbortError') return;
         const a = document.createElement('a');
         a.href = rawUrl;
         a.download = filename;
@@ -668,7 +671,7 @@
       }
     }
 
-    // Web Share API + Clipboard Fallback for ?i=X links
+    // Web Share API + Clipboard Fallback
     async function triggerShare(index) {
       const shareUrl = `${window.location.origin}${window.location.pathname}?i=${index + 1}`;
       const shareData = {
@@ -726,52 +729,37 @@
       }
     }
 
-    // High-Performance Differential Active Window (Eliminates 1,494 DOM traversals)
-    function updateActiveMemoryBudget(visiblePos) {
-      if (visibleIndices.length === 0) return;
-      currentIndex = visibleIndices[visiblePos];
+    // Preload & Unload Buffer (Preloads 1.2 viewports ahead, unloads 2 viewports behind)
+    const bufferObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const slot = entry.target;
+        const img = slot._img;
+        if (!img) return;
+        const idx = parseInt(slot.dataset.index, 10);
 
-      const lower = Math.max(0, visiblePos - 3);
-      const upper = Math.min(visibleIndices.length - 1, visiblePos + 3);
-      const nextActiveWindow = new Set(visibleIndices.slice(lower, upper + 1));
-
-      // Deactivate only slots leaving active range
-      currentActiveWindow.forEach(idx => {
-        if (!nextActiveWindow.has(idx) && SLOTS[idx]) {
-          const img = SLOTS[idx]._img;
-          if (img && img.src) {
+        if (entry.isIntersecting) {
+          if (!img.src || img.src === window.location.href) {
+            img.src = RAW_IMG_BASE + encodeURIComponent(wallpapers[idx]);
+            img.onload = () => img.classList.add('loaded');
+          }
+        } else {
+          if (img.src) {
             img.classList.remove('loaded');
             img.removeAttribute('src');
           }
         }
       });
+    }, { rootMargin: '120% 0px 120% 0px' });
 
-      // Activate only newly visible slots
-      nextActiveWindow.forEach(idx => {
-        if (!currentActiveWindow.has(idx) && SLOTS[idx]) {
-          const img = SLOTS[idx]._img;
-          if (img && (!img.src || img.src === window.location.href)) {
-            img.src = RAW_IMG_BASE + encodeURIComponent(wallpapers[idx]);
-            img.onload = () => img.classList.add('loaded');
-          }
-        }
-      });
-
-      currentActiveWindow = nextActiveWindow;
-    }
-
-    // Zero-Jank Center Midpoint Observer (Replaces all JS scroll event thrashing)
+    // Midpoint Viewport Centering Observer
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
           const slotIdx = parseInt(entry.target.dataset.index, 10);
-          const vPos = visibleIndices.indexOf(slotIdx);
-          if (vPos !== -1) {
-            updateActiveMemoryBudget(vPos);
-          }
+          currentIndex = slotIdx;
         }
       });
-    }, { rootMargin: '-49% 0px -49% 0px' });
+    }, { rootMargin: '-35% 0px -35% 0px' });
 
     async function loadWallpapers() {
       try {
@@ -802,17 +790,25 @@
         slot.dataset.index = index;
         slot.dataset.armedAt = '0';
 
+        // Clean alt tag: removes extension and replaces underscores with spaces
+        const cleanAlt = file.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+
         const img = document.createElement('img');
-        img.alt = file;
+        img.alt = cleanAlt;
         img.loading = 'eager';
-        img.decoding = 'async'; // Offload 4K WebP bitmap decoding from main thread
-        slot._img = img;        // Direct cache prevents runtime DOM querying
+        img.decoding = 'async';
+        slot._img = img;
 
         const overlay = document.createElement('div');
         overlay.className = 'slot-action-overlay';
 
         const actionCard = document.createElement('div');
         actionCard.className = 'slot-action-card';
+
+        // Stop propagation so interactions inside the card never trigger slot dismissal
+        actionCard.addEventListener('pointerdown', (e) => e.stopPropagation());
+        actionCard.addEventListener('pointerup', (e) => e.stopPropagation());
+        actionCard.addEventListener('click', (e) => e.stopPropagation());
 
         const btnRow = document.createElement('div');
         btnRow.className = 'action-btn-row';
@@ -825,10 +821,7 @@
         dlBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           const armedAt = parseInt(slot.dataset.armedAt || '0', 10);
-          if (Date.now() - armedAt < 450) {
-            e.preventDefault();
-            return;
-          }
+          if (Date.now() - armedAt < 450) return;
           triggerDownload(index);
           disarmAllSlots();
         });
@@ -841,10 +834,7 @@
         shareBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           const armedAt = parseInt(slot.dataset.armedAt || '0', 10);
-          if (Date.now() - armedAt < 450) {
-            e.preventDefault();
-            return;
-          }
+          if (Date.now() - armedAt < 450) return;
           triggerShare(index);
           disarmAllSlots();
         });
@@ -874,38 +864,35 @@
         slot.appendChild(img);
         slot.appendChild(overlay);
 
+        // Robust Touch & Click Detection
         let startX = 0;
         let startY = 0;
-        let isSlotDrag = false;
 
         slot.addEventListener('pointerdown', (e) => {
           startX = e.clientX;
           startY = e.clientY;
-          isSlotDrag = false;
         });
 
-        slot.addEventListener('pointermove', (e) => {
-          if (Math.hypot(e.clientX - startX, e.clientY - startY) > 10) {
-            isSlotDrag = true;
-          }
-        });
-
-        slot.addEventListener('click', () => {
-          if (isSlotDrag) return;
-          if (armedIndex === index) {
-            disarmAllSlots();
-          } else {
-            armSlot(index);
+        slot.addEventListener('pointerup', (e) => {
+          if (e.target.closest('.slot-action-overlay')) return;
+          const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+          if (dist < 18) {
+            if (armedIndex === index) {
+              disarmAllSlots();
+            } else {
+              armSlot(index);
+            }
           }
         });
 
         container.appendChild(slot);
         SLOTS.push(slot);
         visibleIndices.push(index);
+        bufferObserver.observe(slot);
         centerObserver.observe(slot);
       });
 
-      // Direct Query Index Parameter (?i=56)
+      // Direct Query Parameter Parsing (?i=56)
       const urlParams = new URLSearchParams(window.location.search);
       const paramI = urlParams.get('i');
       let initialPos;
@@ -922,8 +909,13 @@
         initialPos = Math.max(0, Math.min(randomStart, wallpapers.length - 1));
       }
 
-      SLOTS[initialPos].scrollIntoView({ block: 'center' });
-      updateActiveMemoryBudget(initialPos);
+      currentIndex = initialPos;
+      const initialSlot = SLOTS[initialPos];
+      if (initialSlot) {
+        const rect = initialSlot.getBoundingClientRect();
+        const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+        window.scrollTo({ top: targetY });
+      }
       updateControlsOrientation();
 
       if (document.fonts) {
@@ -941,6 +933,7 @@
       if (!e.target.closest('.image-slot')) disarmAllSlots();
     });
 
+    // Exact Mathematical Viewport Midpoint Scroll
     function scrollToVisiblePosition(vPos) {
       if (visibleIndices.length === 0) return;
       if (vPos < 0) vPos = visibleIndices.length - 1;
@@ -948,9 +941,13 @@
 
       disarmAllSlots();
       const targetIdx = visibleIndices[vPos];
-      updateActiveMemoryBudget(vPos);
+      currentIndex = targetIdx;
       const targetSlot = SLOTS[targetIdx];
-      targetSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (targetSlot) {
+        const rect = targetSlot.getBoundingClientRect();
+        const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+      }
     }
 
     document.getElementById('btn-prev').addEventListener('click', () => {
@@ -976,7 +973,7 @@
       showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
     });
 
-    // Active Card Action Trigger Button (☑️)
+    // Active Card Action Trigger Button (✅)
     document.getElementById('btn-action').addEventListener('click', () => {
       if (armedIndex === currentIndex) {
         disarmAllSlots();
@@ -984,7 +981,9 @@
         armSlot(currentIndex);
         const targetSlot = SLOTS[currentIndex];
         if (targetSlot) {
-          targetSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const rect = targetSlot.getBoundingClientRect();
+          const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
         }
       }
     });
@@ -1025,7 +1024,7 @@
 
     window.addEventListener('resize', updateControlsOrientation);
 
-    // Non-capturing Desktop Drag Detection
+    // Desktop Drag Detection
     const navDock = document.getElementById('nav-dock');
     let isMouseDown = false;
     let dockStartX = 0;
@@ -1088,8 +1087,13 @@
         wallpapers.forEach((_, idx) => {
           SLOTS[idx].style.display = 'flex';
         });
-        updateActiveMemoryBudget(targetIdx);
-        SLOTS[targetIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        currentIndex = targetIdx;
+        const targetSlot = SLOTS[targetIdx];
+        if (targetSlot) {
+          const rect = targetSlot.getBoundingClientRect();
+          const targetY = window.pageYOffset + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+        }
         showToast(`Wallpaper #${num.toLocaleString()}`);
         toggleSearch(false);
       } else {
@@ -1114,8 +1118,6 @@
       if (visibleIndices.length > 0) {
         if (!visibleIndices.includes(currentIndex)) {
           scrollToVisiblePosition(0);
-        } else {
-          updateActiveMemoryBudget(visibleIndices.indexOf(currentIndex));
         }
         if (q) showToast(`${visibleIndices.length.toLocaleString()} Matches`);
       } else {
@@ -1172,6 +1174,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.5.0 -->
+  <!-- 4K WALLPAPERS v1.5.1 -->
 </body>
 </html>
