@@ -174,22 +174,26 @@
       filter: brightness(0.65);
     }
 
+    /* Overlay: display: none when unarmed eliminates ghost taps entirely */
     .slot-action-overlay {
       position: absolute;
       inset: 0;
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       opacity: 0;
       pointer-events: none;
+      visibility: hidden;
       transition: opacity 0.21s cubic-bezier(0.16, 1, 0.3, 1), transform 0.21s cubic-bezier(0.16, 1, 0.3, 1);
       transform: scale(0.92);
       z-index: 10;
     }
 
     .image-slot.armed .slot-action-overlay {
+      display: flex;
       opacity: 1;
       pointer-events: auto;
+      visibility: visible;
       transform: scale(1);
     }
 
@@ -199,7 +203,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: var(--fib-13); /* Natural 13px space degree */
+      gap: var(--fib-13);
       background: var(--glass-bg);
       border: 1px solid var(--glass-highlight);
       border-radius: var(--fib-21);
@@ -340,7 +344,7 @@
       right: auto;
     }
 
-    /* Button Sequencing */
+    /* Desktop Horizontal Ordering */
     body.hand-right #btn-hand   { order: 1; }
     body.hand-right #btn-search { order: 2; }
     body.hand-right #btn-info   { order: 3; }
@@ -422,7 +426,7 @@
         overflow: hidden;
       }
 
-      /* Right-handed Grid: Anchored right, collapses from left */
+      /* Right-handed Grid: Anchored right, [⬅️][➡️] consistent order */
       body.hand-right #nav-dock {
         justify-content: end;
       }
@@ -430,12 +434,12 @@
       body.hand-right #btn-save   { grid-column: 4; grid-row: 2; }
       body.hand-right #btn-search { grid-column: 3; grid-row: 1; }
       body.hand-right #btn-random { grid-column: 3; grid-row: 2; }
-      body.hand-right #btn-info   { grid-column: 2; grid-row: 1; }
-      body.hand-right #btn-prev   { grid-column: 2; grid-row: 2; }
-      body.hand-right #btn-copy   { grid-column: 1; grid-row: 1; }
-      body.hand-right #btn-next   { grid-column: 1; grid-row: 2; }
+      body.hand-right #btn-copy   { grid-column: 2; grid-row: 1; }
+      body.hand-right #btn-next   { grid-column: 2; grid-row: 2; }
+      body.hand-right #btn-info   { grid-column: 1; grid-row: 1; }
+      body.hand-right #btn-prev   { grid-column: 1; grid-row: 2; }
 
-      /* Left-handed Grid: Anchored left, collapses from right */
+      /* Left-handed Grid: Anchored left, [⬅️][➡️] consistent order */
       body.hand-left #nav-dock {
         justify-content: start;
       }
@@ -448,7 +452,6 @@
       body.hand-left #btn-copy   { grid-column: 4; grid-row: 1; }
       body.hand-left #btn-next   { grid-column: 4; grid-row: 2; }
 
-      /* Width toggles: 1 column when collapsed, 4 columns when expanded */
       body.dock-collapsed #nav-dock {
         width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
       }
@@ -654,6 +657,7 @@
         dlBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
         dlBtn.addEventListener('click', (e) => {
           e.stopPropagation();
+          if (armedIndex !== index) return;
           triggerDownload(index);
           disarmCurrentSlot();
         });
@@ -744,7 +748,6 @@
       showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
     });
 
-    // Pointer Button Icon Updates
     function updatePointerIcon() {
       const btn = document.getElementById('btn-hand');
       if (isLeftHanded) {
@@ -762,8 +765,7 @@
       showToast(isLeftHanded ? 'Left-handed Mode' : 'Right-handed Mode');
     }
 
-    // Toggle Collapsed / Expanded state on pointer click
-    document.getElementById('btn-hand').addEventListener('click', (e) => {
+    document.getElementById('btn-hand').addEventListener('click', () => {
       if (window.innerWidth <= 540) {
         isCollapsed = !isCollapsed;
         document.body.classList.toggle('dock-collapsed', isCollapsed);
@@ -773,7 +775,6 @@
       }
     });
 
-    // Gesture Drag Detection on Dock (Snaps between Left and Right)
     const navDock = document.getElementById('nav-dock');
     let dockStartX = 0;
     let dockStartY = 0;
@@ -804,7 +805,6 @@
       }
     });
 
-    // Suppress button clicks if pointer interaction was a drag
     navDock.addEventListener('click', (e) => {
       if (hasDraggedDock) {
         e.stopPropagation();
@@ -846,32 +846,27 @@
 
     searchBtn.addEventListener('click', () => toggleSearch());
 
-    function applySearchFilter(query, showFeedback = true) {
+    function executeDirectJump(num) {
+      if (num >= 1 && num <= wallpapers.length) {
+        const targetIdx = num - 1;
+        visibleIndices = wallpapers.map((_, i) => i);
+        wallpapers.forEach((_, idx) => {
+          SLOTS[idx].style.display = 'flex';
+        });
+        updateActiveMemoryBudget(targetIdx);
+        SLOTS[targetIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast(`Wallpaper #${num.toLocaleString()}`);
+        toggleSearch(false);
+      } else {
+        showToast(`Out of range (1–${wallpapers.length.toLocaleString()})`);
+      }
+    }
+
+    function applySearchFilter(query) {
       disarmCurrentSlot();
       const trimmed = query.trim();
+      if (trimmed.startsWith('#')) return; // Await Enter key for direct number jump
 
-      // Direct Jump Engine: Jumps cleanly in full feed without hiding items
-      const directMatch = trimmed.match(/^#(\d[\d,]*)$/);
-      if (directMatch) {
-        const num = parseInt(directMatch[1].replace(/,/g, ''), 10);
-        if (num >= 1 && num <= wallpapers.length) {
-          const targetIdx = num - 1;
-          visibleIndices = wallpapers.map((_, i) => i);
-          wallpapers.forEach((_, idx) => {
-            SLOTS[idx].style.display = 'flex';
-          });
-          updateActiveMemoryBudget(targetIdx);
-          SLOTS[targetIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-          if (showFeedback) showToast(`Wallpaper #${num.toLocaleString()}`);
-          toggleSearch(false);
-          return;
-        } else {
-          if (showFeedback) showToast(`Out of range (1–${wallpapers.length.toLocaleString()})`);
-          return;
-        }
-      }
-
-      // Substring Filter
       const q = trimmed.toLowerCase();
       visibleIndices = [];
 
@@ -887,9 +882,9 @@
         } else {
           updateActiveMemoryBudget(visibleIndices.indexOf(currentIndex));
         }
-        if (showFeedback && q) showToast(`${visibleIndices.length.toLocaleString()} Matches`);
+        if (q) showToast(`${visibleIndices.length.toLocaleString()} Matches`);
       } else {
-        if (showFeedback) showToast('No Matches Found');
+        showToast('No Matches Found');
       }
     }
 
@@ -898,13 +893,20 @@
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
+        const trimmed = searchInput.value.trim();
+        const directMatch = trimmed.match(/^#?(\d[\d,]*)$/);
+        if (directMatch) {
+          const num = parseInt(directMatch[1].replace(/,/g, ''), 10);
+          executeDirectJump(num);
+          return;
+        }
         toggleSearch(false);
       }
     });
 
     document.getElementById('btn-search-clear').addEventListener('click', () => {
       searchInput.value = '';
-      applySearchFilter('', false);
+      applySearchFilter('');
       toggleSearch(false);
     });
 
