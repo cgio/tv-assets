@@ -199,7 +199,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: var(--fib-8);
+      gap: var(--fib-13); /* Natural 13px space degree */
       background: var(--glass-bg);
       border: 1px solid var(--glass-highlight);
       border-radius: var(--fib-21);
@@ -234,7 +234,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-top: -1px;
     }
 
     /* Glass Overlays */
@@ -252,7 +251,7 @@
       font-size: 0.85rem;
       letter-spacing: 0.5px;
       color: #e5e5ea;
-      transition: opacity 0.21s ease, transform 0.21s ease, left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.34s ease;
+      transition: opacity 0.21s ease, transform 0.21s ease, left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1);
       opacity: 0;
       transform: translateY(var(--fib-8));
       pointer-events: none;
@@ -305,17 +304,10 @@
     }
 
     /* Fixed Navigation Dock Container */
-    #nav-container {
+    #nav-dock {
       position: fixed;
       bottom: calc(var(--fib-21) + env(safe-area-inset-bottom));
       z-index: 950;
-      display: flex;
-      align-items: flex-end;
-      gap: var(--fib-5);
-      transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), left 0.34s ease, right 0.34s ease;
-    }
-
-    #nav-dock {
       display: flex;
       align-items: center;
       gap: var(--fib-8);
@@ -326,45 +318,26 @@
       backdrop-filter: blur(var(--fib-34)) saturate(180%);
       -webkit-backdrop-filter: blur(var(--fib-34)) saturate(180%);
       box-shadow: var(--glass-shadow);
+      touch-action: pan-y;
+      cursor: grab;
+      transition: left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1), width 0.34s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Edge Slide-in Toggle Tab (Mobile only) */
-    #nav-tab-toggle {
-      display: none;
-      width: var(--fib-34);
-      height: var(--fib-55);
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--fib-13);
-      backdrop-filter: blur(var(--fib-21));
-      -webkit-backdrop-filter: blur(var(--fib-21));
-      box-shadow: var(--glass-shadow);
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      color: #e5e5ea;
-      font-size: 1.1rem;
-      transition: transform 0.21s ease;
+    #nav-dock:active {
+      cursor: grabbing;
     }
 
-    /* Right-handed Mode (Default) */
-    body.hand-right #nav-container,
+    /* Handedness Dock Positions */
+    body.hand-right #nav-dock,
     body.hand-right .glass-pill {
       right: var(--fib-21);
       left: auto;
     }
-    body.hand-right #nav-container {
-      flex-direction: row;
-    }
 
-    /* Left-handed Mode */
-    body.hand-left #nav-container,
+    body.hand-left #nav-dock,
     body.hand-left .glass-pill {
       left: var(--fib-21);
       right: auto;
-    }
-    body.hand-left #nav-container {
-      flex-direction: row-reverse;
     }
 
     /* Button Sequencing */
@@ -438,32 +411,54 @@
     /* --- Responsive Mobile Viewports (<= 540px) --- */
     @media (max-width: 540px) {
       :root {
-        /* 2-row calculated height: 2 buttons + 1 row gap + vertical pads + borders */
         --nav-dock-height: calc((var(--nav-btn-size) * 2) + var(--fib-8) + (var(--nav-pad) * 2) + 2px);
-      }
-
-      #nav-tab-toggle {
-        display: flex;
       }
 
       #nav-dock {
         display: grid;
-        grid-template-columns: repeat(4, var(--nav-btn-size));
         grid-template-rows: repeat(2, var(--nav-btn-size));
+        grid-template-columns: repeat(4, var(--nav-btn-size));
         gap: var(--fib-8);
+        overflow: hidden;
       }
 
-      /* Slide-Out States */
-      body.hand-right.dock-collapsed #nav-container {
-        transform: translateX(calc(100% - var(--fib-34)));
+      /* Right-handed Grid: Anchored right, collapses from left */
+      body.hand-right #nav-dock {
+        justify-content: end;
       }
-      body.hand-left.dock-collapsed #nav-container {
-        transform: translateX(calc(-100% + var(--fib-34)));
+      body.hand-right #btn-hand   { grid-column: 4; grid-row: 1; }
+      body.hand-right #btn-save   { grid-column: 4; grid-row: 2; }
+      body.hand-right #btn-search { grid-column: 3; grid-row: 1; }
+      body.hand-right #btn-random { grid-column: 3; grid-row: 2; }
+      body.hand-right #btn-info   { grid-column: 2; grid-row: 1; }
+      body.hand-right #btn-prev   { grid-column: 2; grid-row: 2; }
+      body.hand-right #btn-copy   { grid-column: 1; grid-row: 1; }
+      body.hand-right #btn-next   { grid-column: 1; grid-row: 2; }
+
+      /* Left-handed Grid: Anchored left, collapses from right */
+      body.hand-left #nav-dock {
+        justify-content: start;
+      }
+      body.hand-left #btn-hand   { grid-column: 1; grid-row: 1; }
+      body.hand-left #btn-save   { grid-column: 1; grid-row: 2; }
+      body.hand-left #btn-search { grid-column: 2; grid-row: 1; }
+      body.hand-left #btn-random { grid-column: 2; grid-row: 2; }
+      body.hand-left #btn-info   { grid-column: 3; grid-row: 1; }
+      body.hand-left #btn-prev   { grid-column: 3; grid-row: 2; }
+      body.hand-left #btn-copy   { grid-column: 4; grid-row: 1; }
+      body.hand-left #btn-next   { grid-column: 4; grid-row: 2; }
+
+      /* Width toggles: 1 column when collapsed, 4 columns when expanded */
+      body.dock-collapsed #nav-dock {
+        width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
+      }
+      body:not(.dock-collapsed) #nav-dock {
+        width: calc((var(--nav-btn-size) * 4) + (var(--fib-8) * 3) + (var(--nav-pad) * 2) + 2px);
       }
     }
   </style>
 </head>
-<body class="hand-right">
+<body class="hand-right dock-collapsed">
 
   <canvas id="texture-canvas"></canvas>
 
@@ -485,19 +480,16 @@
 
   <main id="gallery-container"></main>
 
-  <div id="nav-container">
-    <button id="nav-tab-toggle" aria-label="Toggle Navigation Dock">›</button>
-    <nav id="nav-dock">
-      <button class="nav-btn" id="btn-hand" aria-label="Toggle Hand Orientation">🫱🏼</button>
-      <button class="nav-btn" id="btn-search" aria-label="Search Collection">🔍</button>
-      <button class="nav-btn" id="btn-info" aria-label="Toggle File Info">ℹ️</button>
-      <button class="nav-btn" id="btn-copy" aria-label="Copy URL">📋</button>
-      <button class="nav-btn" id="btn-save" aria-label="Download Wallpaper">💾</button>
-      <button class="nav-btn" id="btn-random" aria-label="Random Wallpaper"><span class="dice-icon" id="dice">🎲</span></button>
-      <button class="nav-btn" id="btn-prev" aria-label="Previous Wallpaper">⬅️</button>
-      <button class="nav-btn" id="btn-next" aria-label="Next Wallpaper">➡️</button>
-    </nav>
-  </div>
+  <nav id="nav-dock">
+    <button class="nav-btn" id="btn-hand" aria-label="Toggle Navigation Tray">👈🏼</button>
+    <button class="nav-btn" id="btn-search" aria-label="Search Collection">🔍</button>
+    <button class="nav-btn" id="btn-info" aria-label="Toggle File Info">ℹ️</button>
+    <button class="nav-btn" id="btn-copy" aria-label="Copy URL">📋</button>
+    <button class="nav-btn" id="btn-save" aria-label="Download Wallpaper">💾</button>
+    <button class="nav-btn" id="btn-random" aria-label="Random Wallpaper"><span class="dice-icon" id="dice">🎲</span></button>
+    <button class="nav-btn" id="btn-prev" aria-label="Previous Wallpaper">⬅️</button>
+    <button class="nav-btn" id="btn-next" aria-label="Next Wallpaper">➡️</button>
+  </nav>
 
   <script>
     const GITHUB_REPO = 'cgio/tv-assets';
@@ -509,7 +501,7 @@
     let visibleIndices = [];
     let currentIndex = 0;
     let isLeftHanded = false;
-    let isCollapsed = false;
+    let isCollapsed = true;
     let infoVisible = false;
     let searchVisible = false;
     let diceDegrees = 0;
@@ -700,6 +692,7 @@
 
       SLOTS[initialPos].scrollIntoView({ block: 'center' });
       updateActiveMemoryBudget(initialPos);
+      updatePointerIcon();
 
       if (document.fonts) {
         await document.fonts.ready;
@@ -707,6 +700,7 @@
 
       setTimeout(() => {
         document.getElementById('splash-screen').classList.add('dismissed');
+        showToast(`Wallpaper #${(initialPos + 1).toLocaleString()}`);
       }, 750);
     }
 
@@ -721,7 +715,9 @@
       else if (vPos >= visibleIndices.length) vPos = 0;
 
       disarmCurrentSlot();
-      const targetSlot = SLOTS[visibleIndices[vPos]];
+      const targetIdx = visibleIndices[vPos];
+      updateActiveMemoryBudget(vPos);
+      const targetSlot = SLOTS[targetIdx];
       targetSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
@@ -748,32 +744,74 @@
       showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
     });
 
-    // Mobile Slide-in Tab Toggle Logic
-    const tabToggle = document.getElementById('nav-tab-toggle');
-    function updateTabArrow() {
+    // Pointer Button Icon Updates
+    function updatePointerIcon() {
+      const btn = document.getElementById('btn-hand');
       if (isLeftHanded) {
-        tabToggle.textContent = isCollapsed ? '›' : '‹';
+        btn.textContent = isCollapsed ? '👉🏼' : '👈🏼';
       } else {
-        tabToggle.textContent = isCollapsed ? '‹' : '›';
+        btn.textContent = isCollapsed ? '👈🏼' : '👉🏼';
       }
     }
 
-    tabToggle.addEventListener('click', () => {
-      isCollapsed = !isCollapsed;
-      document.body.classList.toggle('dock-collapsed', isCollapsed);
-      updateTabArrow();
+    function setHandMode(left) {
+      isLeftHanded = left;
+      document.body.className = (isLeftHanded ? 'hand-left' : 'hand-right') + (isCollapsed ? ' dock-collapsed' : '');
+      document.getElementById('btn-search').textContent = isLeftHanded ? '🔎' : '🔍';
+      updatePointerIcon();
+      showToast(isLeftHanded ? 'Left-handed Mode' : 'Right-handed Mode');
+    }
+
+    // Toggle Collapsed / Expanded state on pointer click
+    document.getElementById('btn-hand').addEventListener('click', (e) => {
+      if (window.innerWidth <= 540) {
+        isCollapsed = !isCollapsed;
+        document.body.classList.toggle('dock-collapsed', isCollapsed);
+        updatePointerIcon();
+      } else {
+        setHandMode(!isLeftHanded);
+      }
     });
 
-    // Hand Mode Toggle
-    document.getElementById('btn-hand').addEventListener('click', () => {
-      isLeftHanded = !isLeftHanded;
-      document.body.className = isLeftHanded ? 'hand-left' : 'hand-right';
-      if (isCollapsed) document.body.classList.add('dock-collapsed');
-      document.getElementById('btn-hand').textContent = isLeftHanded ? '🫲🏼' : '🫱🏼';
-      document.getElementById('btn-search').textContent = isLeftHanded ? '🔎' : '🔍';
-      updateTabArrow();
-      showToast(isLeftHanded ? 'Left-handed Mode' : 'Right-handed Mode');
+    // Gesture Drag Detection on Dock (Snaps between Left and Right)
+    const navDock = document.getElementById('nav-dock');
+    let dockStartX = 0;
+    let dockStartY = 0;
+    let hasDraggedDock = false;
+
+    navDock.addEventListener('pointerdown', (e) => {
+      dockStartX = e.clientX;
+      dockStartY = e.clientY;
+      hasDraggedDock = false;
     });
+
+    navDock.addEventListener('pointermove', (e) => {
+      const dx = e.clientX - dockStartX;
+      const dy = e.clientY - dockStartY;
+      if (Math.hypot(dx, dy) > 15) {
+        hasDraggedDock = true;
+      }
+    });
+
+    navDock.addEventListener('pointerup', (e) => {
+      if (hasDraggedDock) {
+        const dx = e.clientX - dockStartX;
+        if (!isLeftHanded && dx < -60) {
+          setHandMode(true);
+        } else if (isLeftHanded && dx > 60) {
+          setHandMode(false);
+        }
+      }
+    });
+
+    // Suppress button clicks if pointer interaction was a drag
+    navDock.addEventListener('click', (e) => {
+      if (hasDraggedDock) {
+        e.stopPropagation();
+        e.preventDefault();
+        hasDraggedDock = false;
+      }
+    }, true);
 
     const infoPill = document.getElementById('info-pill');
     document.getElementById('btn-info').addEventListener('click', () => {
@@ -811,17 +849,21 @@
     function applySearchFilter(query, showFeedback = true) {
       disarmCurrentSlot();
       const trimmed = query.trim();
+
+      // Direct Jump Engine: Jumps cleanly in full feed without hiding items
       const directMatch = trimmed.match(/^#(\d[\d,]*)$/);
       if (directMatch) {
         const num = parseInt(directMatch[1].replace(/,/g, ''), 10);
         if (num >= 1 && num <= wallpapers.length) {
           const targetIdx = num - 1;
-          visibleIndices = [targetIdx];
+          visibleIndices = wallpapers.map((_, i) => i);
           wallpapers.forEach((_, idx) => {
-            SLOTS[idx].style.display = (idx === targetIdx) ? 'flex' : 'none';
+            SLOTS[idx].style.display = 'flex';
           });
-          scrollToVisiblePosition(0);
+          updateActiveMemoryBudget(targetIdx);
+          SLOTS[targetIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
           if (showFeedback) showToast(`Wallpaper #${num.toLocaleString()}`);
+          toggleSearch(false);
           return;
         } else {
           if (showFeedback) showToast(`Out of range (1–${wallpapers.length.toLocaleString()})`);
@@ -829,6 +871,7 @@
         }
       }
 
+      // Substring Filter
       const q = trimmed.toLowerCase();
       visibleIndices = [];
 
