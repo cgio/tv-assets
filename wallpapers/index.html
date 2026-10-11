@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>WALLPAPERS</title>
+  <title>4K WALLPAPERS</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,7 +107,7 @@
 
     .splash-title {
       font-family: var(--font-splash);
-      font-size: clamp(2.5rem, 8vw, 5.5rem);
+      font-size: clamp(2.3rem, 7.5vw, 5rem);
       letter-spacing: var(--fib-5);
       color: #ffffff;
       text-shadow: 0 0 var(--fib-34) rgba(255, 255, 255, 0.25);
@@ -165,7 +165,7 @@
       opacity: 1;
     }
 
-    /* Active Armed State: Glass Highlight & Scrim */
+    /* Active Armed State */
     .image-slot.armed {
       border-color: var(--glass-highlight);
       box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
@@ -200,7 +200,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: var(--fib-5);
+      gap: var(--fib-8);
       background: var(--glass-bg);
       border: 1px solid var(--glass-highlight);
       border-radius: var(--fib-21);
@@ -218,19 +218,19 @@
     }
 
     .btn-slot-download .save-emoji {
-      font-size: 2rem;
+      font-size: 2.2rem;
       line-height: 1;
     }
 
     .btn-slot-download .save-label {
       font-family: var(--font-body);
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       letter-spacing: var(--fib-2);
       color: #ffffff;
       text-transform: uppercase;
     }
 
-    /* Glass Pills (Info & Search) */
+    /* Glass Pills */
     .glass-pill {
       position: fixed;
       bottom: calc(var(--fib-21) + var(--nav-dock-height) + var(--info-dock-gap) + env(safe-area-inset-bottom));
@@ -401,7 +401,7 @@
 
   <div id="splash-screen">
     <div class="splash-box">
-      <div class="splash-title">WALLPAPERS</div>
+      <div class="splash-title">4K WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
     </div>
   </div>
@@ -444,7 +444,6 @@
     let armedIndex = null;
     const SLOTS = [];
 
-    // 1. Procedural Texture
     (function initOrganicTexture() {
       const canvas = document.getElementById('texture-canvas');
       const ctx = canvas.getContext('2d');
@@ -466,7 +465,6 @@
       canvas.style.backgroundSize = '128px 128px';
     })();
 
-    // 2. Dice Rotation
     const diceEl = document.getElementById('dice');
     diceDegrees = Math.floor(Math.random() * 10) * 36;
     diceEl.style.transform = `rotate(${diceDegrees}deg)`;
@@ -476,7 +474,6 @@
       diceEl.style.transform = `rotate(${diceDegrees}deg)`;
     }
 
-    // 3. Toast
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
@@ -484,7 +481,6 @@
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
 
-    // 4. Download Execution
     function triggerDownload(index) {
       const filename = wallpapers[index];
       if (!filename) return;
@@ -499,7 +495,6 @@
       showToast('Downloading...');
     }
 
-    // 5. Arm / Disarm Card Management
     function disarmCurrentSlot() {
       if (armedIndex !== null && SLOTS[armedIndex]) {
         SLOTS[armedIndex].classList.remove('armed');
@@ -516,7 +511,6 @@
       }
     }
 
-    // 6. Memory Budget
     function updateActiveMemoryBudget(visiblePos) {
       if (visibleIndices.length === 0) return;
       currentIndex = visibleIndices[visiblePos];
@@ -544,7 +538,6 @@
       document.getElementById('info-pill').textContent = `#${(currentIndex + 1).toLocaleString()} | ${activeFile}`;
     }
 
-    // 7. Intersection Observer
     const centerObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.target.style.display !== 'none') {
@@ -555,7 +548,6 @@
       });
     }, { rootMargin: '-40% 0px -40% 0px', threshold: 0 });
 
-    // 8. Bootstrap
     async function loadWallpapers() {
       try {
         const res = await fetch(MANIFEST_URL);
@@ -588,13 +580,12 @@
         img.alt = file;
         img.loading = 'eager';
 
-        // Action Overlay with Centered Glass Download Badge
         const overlay = document.createElement('div');
         overlay.className = 'slot-action-overlay';
 
         const dlBtn = document.createElement('div');
         dlBtn.className = 'btn-slot-download';
-        dlBtn.innerHTML = '<span class="save-emoji">💾</span><span class="save-label">Save 4K</span>';
+        dlBtn.innerHTML = '<span class="save-emoji">💾</span><span class="save-label">SAVE</span>';
 
         dlBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
         dlBtn.addEventListener('click', (e) => {
@@ -607,7 +598,6 @@
         slot.appendChild(img);
         slot.appendChild(overlay);
 
-        // Tap/Click vs. Scroll Drag Filter
         let startX = 0;
         let startY = 0;
 
@@ -639,7 +629,6 @@
       SLOTS[initialPos].scrollIntoView({ block: 'center' });
       updateActiveMemoryBudget(initialPos);
 
-      // Await Google Fonts parsing to eliminate unstyled fallback flashes
       if (document.fonts) {
         await document.fonts.ready;
       }
@@ -649,13 +638,11 @@
       }, 750);
     }
 
-    // Dismiss armed state on external scroll or click outside
     window.addEventListener('scroll', () => disarmCurrentSlot(), { passive: true });
     document.addEventListener('pointerdown', (e) => {
       if (!e.target.closest('.image-slot')) disarmCurrentSlot();
     });
 
-    // 9. Navigation
     function scrollToVisiblePosition(vPos) {
       if (visibleIndices.length === 0) return;
       if (vPos < 0) vPos = visibleIndices.length - 1;
