@@ -29,12 +29,12 @@
       --fib-610: 610px;
       --fib-987: 987px;
 
-      --nav-btn-size: var(--fib-55);
-      --nav-pad: var(--fib-8);
+      --nav-btn-size: var(--fib-55); /* 55px */
+      --nav-pad: var(--fib-8);        /* 8px */
       --nav-dock-height: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
       --info-dock-gap: var(--fib-13);
 
-      --glass-bg: rgba(18, 18, 22, 0.68);
+      --glass-bg: rgba(18, 18, 22, 0.72);
       --glass-border: rgba(255, 255, 255, 0.13);
       --glass-highlight: rgba(255, 255, 255, 0.34);
       --glass-shadow: 0 var(--fib-8) var(--fib-34) rgba(0, 0, 0, 0.65);
@@ -123,7 +123,7 @@
       text-transform: uppercase;
     }
 
-    /* Image Gallery Feed */
+    /* Gallery Feed */
     #gallery-container {
       position: relative;
       z-index: 1;
@@ -149,7 +149,7 @@
       overflow: hidden;
       cursor: pointer;
       touch-action: pan-y;
-      transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.21s ease;
+      transition: border-color 0.28s ease, box-shadow 0.28s ease;
     }
 
     .image-slot img {
@@ -165,7 +165,6 @@
       opacity: 1;
     }
 
-    /* Active Armed State */
     .image-slot.armed {
       border-color: var(--glass-highlight);
       box-shadow: inset 0 0 0 2px var(--glass-highlight), 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.85);
@@ -175,7 +174,6 @@
       filter: brightness(0.65);
     }
 
-    /* Armed Action Overlay */
     .slot-action-overlay {
       position: absolute;
       inset: 0;
@@ -195,6 +193,7 @@
       transform: scale(1);
     }
 
+    /* Save Badge */
     .btn-slot-download {
       display: flex;
       flex-direction: column;
@@ -220,6 +219,7 @@
     .btn-slot-download .save-emoji {
       font-size: 2.2rem;
       line-height: 1;
+      display: block;
     }
 
     .btn-slot-download .save-label {
@@ -228,9 +228,16 @@
       letter-spacing: var(--fib-2);
       color: #ffffff;
       text-transform: uppercase;
+      line-height: 1;
+      text-box-trim: both;
+      text-box-edge: cap alphabetic;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -1px;
     }
 
-    /* Glass Pills */
+    /* Glass Overlays */
     .glass-pill {
       position: fixed;
       bottom: calc(var(--fib-21) + var(--nav-dock-height) + var(--info-dock-gap) + env(safe-area-inset-bottom));
@@ -245,7 +252,7 @@
       font-size: 0.85rem;
       letter-spacing: 0.5px;
       color: #e5e5ea;
-      transition: opacity 0.21s ease, transform 0.21s ease, left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.21s ease, transform 0.21s ease, left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.34s ease;
       opacity: 0;
       transform: translateY(var(--fib-8));
       pointer-events: none;
@@ -297,11 +304,18 @@
       padding: 0 var(--fib-5);
     }
 
-    /* Fixed Bottom Navigation */
-    #nav-dock {
+    /* Fixed Navigation Dock Container */
+    #nav-container {
       position: fixed;
       bottom: calc(var(--fib-21) + env(safe-area-inset-bottom));
       z-index: 950;
+      display: flex;
+      align-items: flex-end;
+      gap: var(--fib-5);
+      transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), left 0.34s ease, right 0.34s ease;
+    }
+
+    #nav-dock {
       display: flex;
       align-items: center;
       gap: var(--fib-8);
@@ -312,21 +326,48 @@
       backdrop-filter: blur(var(--fib-34)) saturate(180%);
       -webkit-backdrop-filter: blur(var(--fib-34)) saturate(180%);
       box-shadow: var(--glass-shadow);
-      transition: left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    body.hand-right #nav-dock,
+    /* Edge Slide-in Toggle Tab (Mobile only) */
+    #nav-tab-toggle {
+      display: none;
+      width: var(--fib-34);
+      height: var(--fib-55);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--fib-13);
+      backdrop-filter: blur(var(--fib-21));
+      -webkit-backdrop-filter: blur(var(--fib-21));
+      box-shadow: var(--glass-shadow);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      color: #e5e5ea;
+      font-size: 1.1rem;
+      transition: transform 0.21s ease;
+    }
+
+    /* Right-handed Mode (Default) */
+    body.hand-right #nav-container,
     body.hand-right .glass-pill {
       right: var(--fib-21);
       left: auto;
     }
+    body.hand-right #nav-container {
+      flex-direction: row;
+    }
 
-    body.hand-left #nav-dock,
+    /* Left-handed Mode */
+    body.hand-left #nav-container,
     body.hand-left .glass-pill {
       left: var(--fib-21);
       right: auto;
     }
+    body.hand-left #nav-container {
+      flex-direction: row-reverse;
+    }
 
+    /* Button Sequencing */
     body.hand-right #btn-hand   { order: 1; }
     body.hand-right #btn-search { order: 2; }
     body.hand-right #btn-info   { order: 3; }
@@ -393,6 +434,33 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* --- Responsive Mobile Viewports (<= 540px) --- */
+    @media (max-width: 540px) {
+      :root {
+        /* 2-row calculated height: 2 buttons + 1 row gap + vertical pads + borders */
+        --nav-dock-height: calc((var(--nav-btn-size) * 2) + var(--fib-8) + (var(--nav-pad) * 2) + 2px);
+      }
+
+      #nav-tab-toggle {
+        display: flex;
+      }
+
+      #nav-dock {
+        display: grid;
+        grid-template-columns: repeat(4, var(--nav-btn-size));
+        grid-template-rows: repeat(2, var(--nav-btn-size));
+        gap: var(--fib-8);
+      }
+
+      /* Slide-Out States */
+      body.hand-right.dock-collapsed #nav-container {
+        transform: translateX(calc(100% - var(--fib-34)));
+      }
+      body.hand-left.dock-collapsed #nav-container {
+        transform: translateX(calc(-100% + var(--fib-34)));
+      }
+    }
   </style>
 </head>
 <body class="hand-right">
@@ -417,16 +485,19 @@
 
   <main id="gallery-container"></main>
 
-  <nav id="nav-dock">
-    <button class="nav-btn" id="btn-hand" aria-label="Toggle Hand Orientation">🫱🏼</button>
-    <button class="nav-btn" id="btn-search" aria-label="Search Collection">🔍</button>
-    <button class="nav-btn" id="btn-info" aria-label="Toggle File Info">ℹ️</button>
-    <button class="nav-btn" id="btn-copy" aria-label="Copy URL">📋</button>
-    <button class="nav-btn" id="btn-save" aria-label="Download Wallpaper">💾</button>
-    <button class="nav-btn" id="btn-random" aria-label="Random Wallpaper"><span class="dice-icon" id="dice">🎲</span></button>
-    <button class="nav-btn" id="btn-prev" aria-label="Previous Wallpaper">⬅️</button>
-    <button class="nav-btn" id="btn-next" aria-label="Next Wallpaper">➡️</button>
-  </nav>
+  <div id="nav-container">
+    <button id="nav-tab-toggle" aria-label="Toggle Navigation Dock">›</button>
+    <nav id="nav-dock">
+      <button class="nav-btn" id="btn-hand" aria-label="Toggle Hand Orientation">🫱🏼</button>
+      <button class="nav-btn" id="btn-search" aria-label="Search Collection">🔍</button>
+      <button class="nav-btn" id="btn-info" aria-label="Toggle File Info">ℹ️</button>
+      <button class="nav-btn" id="btn-copy" aria-label="Copy URL">📋</button>
+      <button class="nav-btn" id="btn-save" aria-label="Download Wallpaper">💾</button>
+      <button class="nav-btn" id="btn-random" aria-label="Random Wallpaper"><span class="dice-icon" id="dice">🎲</span></button>
+      <button class="nav-btn" id="btn-prev" aria-label="Previous Wallpaper">⬅️</button>
+      <button class="nav-btn" id="btn-next" aria-label="Next Wallpaper">➡️</button>
+    </nav>
+  </div>
 
   <script>
     const GITHUB_REPO = 'cgio/tv-assets';
@@ -438,6 +509,7 @@
     let visibleIndices = [];
     let currentIndex = 0;
     let isLeftHanded = false;
+    let isCollapsed = false;
     let infoVisible = false;
     let searchVisible = false;
     let diceDegrees = 0;
@@ -676,11 +748,30 @@
       showToast(`Wallpaper #${(visibleIndices[nextVPos] + 1).toLocaleString()}`);
     });
 
+    // Mobile Slide-in Tab Toggle Logic
+    const tabToggle = document.getElementById('nav-tab-toggle');
+    function updateTabArrow() {
+      if (isLeftHanded) {
+        tabToggle.textContent = isCollapsed ? '›' : '‹';
+      } else {
+        tabToggle.textContent = isCollapsed ? '‹' : '›';
+      }
+    }
+
+    tabToggle.addEventListener('click', () => {
+      isCollapsed = !isCollapsed;
+      document.body.classList.toggle('dock-collapsed', isCollapsed);
+      updateTabArrow();
+    });
+
+    // Hand Mode Toggle
     document.getElementById('btn-hand').addEventListener('click', () => {
       isLeftHanded = !isLeftHanded;
       document.body.className = isLeftHanded ? 'hand-left' : 'hand-right';
+      if (isCollapsed) document.body.classList.add('dock-collapsed');
       document.getElementById('btn-hand').textContent = isLeftHanded ? '🫲🏼' : '🫱🏼';
       document.getElementById('btn-search').textContent = isLeftHanded ? '🔎' : '🔍';
+      updateTabArrow();
       showToast(isLeftHanded ? 'Left-handed Mode' : 'Right-handed Mode');
     });
 
