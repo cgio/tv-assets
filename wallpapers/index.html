@@ -11,7 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Unna:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
   <style>
-    /* Self-Hosted Primary Font with CDN Fallback */
     @font-face {
       font-family: 'Hoboken-ExtraBold';
       src: url('HobokenExtraBold.woff') format('woff'),
@@ -21,7 +20,6 @@
       font-display: block;
     }
 
-    /* --- Phi / Fibonacci Natural Scale --- */
     :root {
       --phi: 1.6180339887;
       --fib-1: 1px;
@@ -40,8 +38,8 @@
       --fib-610: 610px;
       --fib-987: 987px;
 
-      --nav-btn-size: var(--fib-55); /* 55px */
-      --nav-pad: var(--fib-8);        /* 8px */
+      --nav-btn-size: var(--fib-55);
+      --nav-pad: var(--fib-8);
       --nav-dock-height: calc((var(--nav-btn-size) * 2) + var(--fib-8) + (var(--nav-pad) * 2) + 2px);
       --info-dock-gap: var(--fib-13);
 
@@ -132,7 +130,6 @@
       text-align: center;
     }
 
-    /* Ambient Sheen Sweep on Splash Box */
     .splash-box::before {
       content: '';
       position: absolute;
@@ -219,7 +216,7 @@
       opacity: 0.85;
     }
 
-    /* Persistent Filter Indicator (Capsule Geometry) */
+    /* Persistent Filter Banner */
     #filter-banner {
       position: fixed;
       top: calc(var(--fib-13) + env(safe-area-inset-top));
@@ -279,7 +276,7 @@
       color: #ffffff;
     }
 
-    /* Cascading Toast Positioning */
+    /* Cascading Toast Positioning (Elevated above inspect overlay at 2100) */
     #toast {
       position: fixed;
       top: calc(var(--fib-34) + env(safe-area-inset-top));
@@ -294,7 +291,7 @@
       opacity: 0;
       transform: translateY(-20px);
       transition: opacity 0.21s ease, transform 0.21s ease, top 0.21s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 1100;
+      z-index: 2100;
       pointer-events: none;
     }
 
@@ -341,7 +338,6 @@
       transition: border-color 0.21s ease;
     }
 
-    /* Barber-Luster Sweep */
     .image-slot::before {
       content: '';
       position: absolute;
@@ -367,7 +363,6 @@
       100% { background-position: -90% 0; }
     }
 
-    /* Card Placeholder & Pips */
     .slot-placeholder {
       position: absolute;
       inset: 0;
@@ -419,7 +414,6 @@
       }
     }
 
-    /* 4K Image Surface */
     .image-slot img {
       position: relative;
       z-index: 2;
@@ -474,7 +468,6 @@
       cursor: default;
     }
 
-    /* 4-Button Action Row */
     .action-btn-row {
       display: flex;
       align-items: center;
@@ -487,7 +480,6 @@
       flex-direction: row-reverse;
     }
 
-    /* Human-Friendly Mobile Sizing with Inner Breathing Room */
     .btn-slot-action {
       display: flex;
       flex-direction: column;
@@ -499,7 +491,7 @@
       border-radius: var(--fib-21);
       padding: var(--fib-8) clamp(var(--fib-8), 2vw, var(--fib-13));
       min-width: clamp(68px, 19vw, 84px);
-      min-height: calc(var(--nav-btn-size) + var(--fib-8)); /* 63px */
+      min-height: calc(var(--nav-btn-size) + var(--fib-8));
       backdrop-filter: blur(var(--fib-21));
       -webkit-backdrop-filter: blur(var(--fib-21));
       box-shadow: var(--glass-shadow);
@@ -565,7 +557,7 @@
       border-color: var(--glass-highlight);
     }
 
-    /* Inspect Overlay (1:1 Native Edge) */
+    /* Inspect Overlay (1:1 Intrinsic Bitmap) */
     #inspect-overlay {
       position: fixed;
       inset: 0;
@@ -781,11 +773,10 @@
         </span>
         <span id="splash-count-num" style="display: none; margin-left: var(--fib-8);"></span>
       </div>
-      <div class="splash-ver">v2.0.2</div>
+      <div class="splash-ver">v2.0.3</div>
     </div>
   </div>
 
-  <!-- Persistent Active Filter Banner -->
   <div id="filter-banner">
     <span id="filter-banner-text">Filtering: <strong id="filter-term"></strong></span>
     <button id="btn-filter-banner-clear" aria-label="Clear Search Filter">
@@ -795,7 +786,6 @@
 
   <div id="toast">Notification</div>
 
-  <!-- Keyboard-Safe Modal Search -->
   <div id="search-modal-backdrop"></div>
   <div id="search-box">
     <input type="text" id="search-input" placeholder="Filter by name or go directly; e.g. #33" autocomplete="off" spellcheck="false">
@@ -806,12 +796,10 @@
 
   <main id="gallery-container"></main>
 
-  <!-- Full-Screen Intrinsic Inspect Overlay -->
   <div id="inspect-overlay">
     <img id="inspect-img" alt="Artwork Detail">
   </div>
 
-  <!-- 4-Button Action Overlay -->
   <div id="shared-action-overlay">
     <div class="slot-action-card">
       <div class="action-btn-row">
@@ -919,9 +907,13 @@
       diceEl.style.transform = `rotate(${diceDegrees}deg)`;
     }
 
-    function showToast(msg) {
+    function showToast(msg, isHtml = false) {
       const toast = document.getElementById('toast');
-      toast.textContent = msg;
+      if (isHtml) {
+        toast.innerHTML = msg;
+      } else {
+        toast.textContent = msg;
+      }
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 1618);
     }
@@ -1069,15 +1061,51 @@
       }, 200);
     }
 
+    // Zero-Overhead Intrinsic Probe & 4K Qualification
+    function probeAndShowResolution() {
+      const w = inspectImg.naturalWidth;
+      const h = inspectImg.naturalHeight;
+      if (!w || !h) return;
+
+      const longSide = Math.max(w, h);
+      const shortSide = Math.min(w, h);
+      let badge = '';
+
+      if (longSide >= 3840 && shortSide >= 2160) {
+        if (longSide > 3840 || shortSide > 2160) {
+          badge = '<span style="color: var(--accent-yellow); font-weight: 700;">(4K+)</span>';
+        } else {
+          badge = '<span style="color: var(--accent-yellow); font-weight: 700;">(4K)</span>';
+        }
+      } else {
+        badge = '<span style="color: rgba(255, 140, 140, 0.85); font-weight: 700;">(Sub-4K)</span>';
+      }
+
+      const toastContent = `<span style="color: var(--accent-yellow); font-weight: 700;">Size:</span> ${w.toLocaleString()}px \u00D7 ${h.toLocaleString()}px ${badge}`;
+      showToast(toastContent, true);
+    }
+
     function openInspect(index) {
       disarmAllSlots();
       const file = wallpapers[index];
       if (!file) return;
+
+      inspectImg.onload = () => {
+        if (inspectOverlay.classList.contains('visible')) {
+          probeAndShowResolution();
+        }
+      };
+
       inspectImg.src = RAW_IMG_BASE + encodeURIComponent(file);
       inspectOverlay.classList.add('visible');
+
+      if (inspectImg.complete && inspectImg.naturalWidth > 0) {
+        probeAndShowResolution();
+      }
     }
 
     function closeInspect() {
+      inspectImg.onload = null;
       inspectOverlay.classList.remove('visible');
       setTimeout(() => {
         inspectImg.removeAttribute('src');
@@ -1242,7 +1270,6 @@
         return;
       }
 
-      // Transition splash pips to exact library count
       document.getElementById('splash-dots').style.display = 'none';
       const countNum = document.getElementById('splash-count-num');
       countNum.textContent = wallpapers.length.toLocaleString();
@@ -1621,6 +1648,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v2.0.2 -->
+  <!-- 4K WALLPAPERS v2.0.3 -->
 </body>
 </html>
