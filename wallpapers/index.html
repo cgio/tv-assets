@@ -156,7 +156,7 @@
       opacity: 0.85;
     }
 
-    /* Persistent Filter Indicator */
+    /* Persistent Filter Indicator (Pure Capsule/Stadium Geometry) */
     #filter-banner {
       position: fixed;
       top: calc(var(--fib-13) + env(safe-area-inset-top));
@@ -341,15 +341,9 @@
       animation: dotJig 1.618s ease-in-out infinite;
     }
 
-    .slot-loader-dots span:nth-child(1) {
-      animation-delay: 0s;
-    }
-    .slot-loader-dots span:nth-child(2) {
-      animation-delay: 0.236s;
-    }
-    .slot-loader-dots span:nth-child(3) {
-      animation-delay: 0.382s;
-    }
+    .slot-loader-dots span:nth-child(1) { animation-delay: 0s; }
+    .slot-loader-dots span:nth-child(2) { animation-delay: 0.236s; }
+    .slot-loader-dots span:nth-child(3) { animation-delay: 0.382s; }
 
     @keyframes dotJig {
       0%, 100% {
@@ -362,7 +356,7 @@
       }
     }
 
-    /* 4K Image Surface (Silenced Alt Painting) */
+    /* 4K Image Surface */
     .image-slot img {
       position: relative;
       z-index: 2;
@@ -490,6 +484,39 @@
       border-color: var(--glass-highlight);
     }
 
+    /* Dedicated Double-Tap Intrinsic Inspect Overlay */
+    #inspect-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 7, 10, 0.96);
+      backdrop-filter: blur(var(--fib-34));
+      -webkit-backdrop-filter: blur(var(--fib-34));
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--fib-13);
+      cursor: zoom-out;
+      opacity: 0;
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #inspect-overlay.visible {
+      display: flex;
+      opacity: 1;
+    }
+
+    #inspect-img {
+      max-width: 100vw;
+      max-height: 100dvh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      box-shadow: 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.9);
+      border-radius: var(--fib-5);
+      pointer-events: none;
+    }
+
     /* Modal Backdrop for Search */
     #search-modal-backdrop {
       position: fixed;
@@ -572,7 +599,7 @@
       background: rgba(255, 255, 255, 0.15);
     }
 
-    /* --- Universal Navigation Dock: 2-Button Stack Default across All Devices --- */
+    /* Universal 2-Button Dock */
     #nav-dock {
       position: fixed;
       bottom: calc(var(--fib-21) + env(safe-area-inset-bottom));
@@ -600,10 +627,6 @@
       cursor: grabbing;
     }
 
-    /* Right-Docked Grid Layout:
-       Row 1: [ 🔍 ] [ 🎲 ] [ 👉🏼/👈🏼 ]
-       Row 2: [ ⬅️ ] [ ➡️ ] [ ✅ ]
-       Collapsed view shows only Column 3 [ 👉🏼/👈🏼 ] top, [ ✅ ] bottom */
     body.hand-right #nav-dock {
       right: var(--fib-21);
       left: auto;
@@ -616,10 +639,6 @@
     body.hand-right #btn-next   { grid-column: 2; grid-row: 2; }
     body.hand-right #btn-action { grid-column: 3; grid-row: 2; }
 
-    /* Left-Docked Grid Layout:
-       Row 1: [ 👈🏼/👉🏼 ] [ 🎲 ] [ 🔎 ]
-       Row 2: [ ✅ ] [ ⬅️ ] [ ➡️ ]
-       Collapsed view shows only Column 1 [ 👈🏼/👉🏼 ] top, [ ✅ ] bottom */
     body.hand-left #nav-dock {
       left: var(--fib-21);
       right: auto;
@@ -632,12 +651,10 @@
     body.hand-left #btn-prev   { grid-column: 2; grid-row: 2; }
     body.hand-left #btn-next   { grid-column: 3; grid-row: 2; }
 
-    /* Collapsed: Exactly 1 column width (2 buttons stacked vertically) on ALL devices */
     body.dock-collapsed #nav-dock {
       width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
     }
 
-    /* Expanded: Exactly 3 columns width (3x2 grid) on ALL devices */
     body:not(.dock-collapsed) #nav-dock {
       width: calc((var(--nav-btn-size) * 3) + (var(--fib-8) * 2) + (var(--nav-pad) * 2) + 2px);
     }
@@ -677,7 +694,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.9.8</div>
+      <div class="splash-ver">v1.9.9</div>
     </div>
   </div>
 
@@ -701,6 +718,11 @@
   </div>
 
   <main id="gallery-container"></main>
+
+  <!-- Full-Screen Intrinsic Aspect-Ratio Inspect Overlay -->
+  <div id="inspect-overlay">
+    <img id="inspect-img" alt="Artwork Detail">
+  </div>
 
   <div id="shared-action-overlay">
     <div class="slot-action-card">
@@ -752,7 +774,14 @@
     let lastRandomTimestamp = 0;
     const SLOTS = [];
 
+    // Double-Tap Inspect State
+    let lastTapTime = 0;
+    let lastTapIndex = null;
+    let singleTapTimer = null;
+
     const sharedOverlay = document.getElementById('shared-action-overlay');
+    const inspectOverlay = document.getElementById('inspect-overlay');
+    const inspectImg = document.getElementById('inspect-img');
     const modalDlBtn = document.getElementById('modal-btn-download');
     const modalShareBtn = document.getElementById('modal-btn-share');
     const modalUrlBtn = document.getElementById('modal-btn-url');
@@ -768,7 +797,6 @@
       return false;
     }
 
-    // Procedural Background Texture
     (function initOrganicTexture() {
       const canvas = document.getElementById('texture-canvas');
       const ctx = canvas.getContext('2d');
@@ -947,6 +975,24 @@
       }, 200);
     }
 
+    // Intrinsic Aspect-Ratio Inspect Controller
+    function openInspect(index) {
+      disarmAllSlots();
+      const file = wallpapers[index];
+      if (!file) return;
+      inspectImg.src = RAW_IMG_BASE + encodeURIComponent(file);
+      inspectOverlay.classList.add('visible');
+    }
+
+    function closeInspect() {
+      inspectOverlay.classList.remove('visible');
+      setTimeout(() => {
+        inspectImg.removeAttribute('src');
+      }, 280);
+    }
+
+    inspectOverlay.addEventListener('click', closeInspect);
+
     sharedOverlay.addEventListener('click', (e) => e.stopPropagation());
     modalDlBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1103,7 +1149,6 @@
 
         const cleanAlt = file.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
 
-        // Card Placeholder with Auction-House Dancing Pips
         const placeholder = document.createElement('div');
         placeholder.className = 'slot-placeholder';
 
@@ -1134,10 +1179,28 @@
         centerObserver.observe(slot);
       });
 
+      // Unified Single/Double Tap Controller
       container.addEventListener('click', (e) => {
         const slot = e.target.closest('.image-slot');
         if (!slot || e.target.closest('#shared-action-overlay')) return;
-        armSlot(slot._index);
+        const idx = slot._index;
+        const now = Date.now();
+
+        if (lastTapIndex === idx && (now - lastTapTime) < 320) {
+          // Double-tap detected: cancel arming timer, open full inspect
+          clearTimeout(singleTapTimer);
+          lastTapTime = 0;
+          lastTapIndex = null;
+          openInspect(idx);
+        } else {
+          // First tap: buffer slightly to disambiguate single vs double tap
+          lastTapTime = now;
+          lastTapIndex = idx;
+          clearTimeout(singleTapTimer);
+          singleTapTimer = setTimeout(() => {
+            armSlot(idx);
+          }, 240);
+        }
       });
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -1439,6 +1502,10 @@
         e.preventDefault();
         toggleSearch(true);
       } else if (e.key === 'Escape') {
+        if (inspectOverlay.classList.contains('visible')) {
+          closeInspect();
+          return;
+        }
         if (searchVisible) toggleSearch(false);
         disarmAllSlots();
       }
@@ -1446,6 +1513,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.9.8 -->
+  <!-- 4K WALLPAPERS v1.9.9 -->
 </body>
 </html>
