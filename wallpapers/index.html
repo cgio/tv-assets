@@ -8,9 +8,19 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖼️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800&family=Unna:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Unna:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
   <style>
+    /* Self-Hosted Primary Font with CDN Fallback */
+    @font-face {
+      font-family: 'Hoboken-ExtraBold';
+      src: url('HobokenExtraBold.woff') format('woff'),
+           url('https://fonts.cdnfonts.com/s/59463/HobokenExtraBold.woff') format('woff');
+      font-weight: 800;
+      font-style: normal;
+      font-display: block;
+    }
+
     /* --- Phi / Fibonacci Natural Scale --- */
     :root {
       --phi: 1.6180339887;
@@ -41,7 +51,7 @@
       --glass-shadow: 0 var(--fib-8) var(--fib-34) rgba(0, 0, 0, 0.65);
       --accent-yellow: #ffe066;
       --font-body: 'Unna', serif;
-      --font-splash: 'Archivo-Raw', 'Archivo', sans-serif;
+      --font-splash: 'Hoboken-ExtraBold', sans-serif;
       --font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
     }
 
@@ -108,6 +118,8 @@
     }
 
     .splash-box {
+      position: relative;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -118,6 +130,34 @@
       border-radius: var(--fib-21);
       box-shadow: var(--glass-shadow);
       text-align: center;
+    }
+
+    /* Ambient Sheen Sweep on Splash Box */
+    .splash-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        115deg,
+        transparent 0%,
+        transparent 35%,
+        rgba(255, 255, 255, 0.015) 45%,
+        rgba(255, 224, 102, 0.035) 50%,
+        rgba(255, 255, 255, 0.015) 55%,
+        transparent 65%,
+        transparent 100%
+      );
+      background-size: 250% 100%;
+      animation: galleryLuster 3.8s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .splash-title,
+    .splash-sub,
+    .splash-ver {
+      position: relative;
+      z-index: 2;
     }
 
     .splash-title {
@@ -144,7 +184,30 @@
       color: rgba(235, 235, 245, 0.95);
       margin-top: var(--fib-8);
       text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
+
+    .splash-loader-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--fib-5);
+      margin-left: var(--fib-8);
+      height: var(--fib-13);
+    }
+
+    .splash-loader-dots span {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.28);
+      animation: dotJig 1.618s ease-in-out infinite;
+    }
+
+    .splash-loader-dots span:nth-child(1) { animation-delay: 0s; }
+    .splash-loader-dots span:nth-child(2) { animation-delay: 0.236s; }
+    .splash-loader-dots span:nth-child(3) { animation-delay: 0.382s; }
 
     .splash-ver {
       font-family: var(--font-mono);
@@ -156,7 +219,7 @@
       opacity: 0.85;
     }
 
-    /* Persistent Filter Indicator */
+    /* Persistent Filter Indicator (Capsule Geometry) */
     #filter-banner {
       position: fixed;
       top: calc(var(--fib-13) + env(safe-area-inset-top));
@@ -420,23 +483,23 @@
       max-width: 100%;
     }
 
-    /* Reversible Button Ordering */
     body.hand-left .action-btn-row {
       flex-direction: row-reverse;
     }
 
+    /* Human-Friendly Mobile Sizing with Inner Breathing Room */
     .btn-slot-action {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: var(--fib-3);
+      gap: var(--fib-5);
       background: var(--glass-bg);
       border: 1px solid var(--glass-highlight);
       border-radius: var(--fib-21);
-      padding: var(--fib-8) clamp(var(--fib-5), 1.8vw, var(--fib-13));
-      min-width: clamp(58px, 16vw, 76px);
-      min-height: var(--fib-55);
+      padding: var(--fib-8) clamp(var(--fib-8), 2vw, var(--fib-13));
+      min-width: clamp(68px, 19vw, 84px);
+      min-height: calc(var(--nav-btn-size) + var(--fib-8)); /* 63px */
       backdrop-filter: blur(var(--fib-21));
       -webkit-backdrop-filter: blur(var(--fib-21));
       box-shadow: var(--glass-shadow);
@@ -450,13 +513,13 @@
     }
 
     .btn-slot-action .action-emoji {
-      font-size: clamp(1.35rem, 4.2vw, 1.65rem);
+      font-size: clamp(1.4rem, 4vw, 1.65rem);
       line-height: 1.1;
       display: inline-block;
       transition: transform 0.28s ease;
     }
 
-    /* Dynamic Slant Harmony */
+    /* Slant Harmony */
     body.hand-right .btn-slot-full .action-emoji  { transform: none; }
     body.hand-left  .btn-slot-full .action-emoji  { transform: scaleX(-1); }
 
@@ -466,8 +529,8 @@
     .btn-slot-action .action-label {
       font-family: var(--font-body);
       font-weight: 700;
-      font-size: clamp(0.75rem, 2.2vw, 0.85rem);
-      letter-spacing: var(--fib-1);
+      font-size: 0.82rem;
+      letter-spacing: var(--fib-2);
       color: #ffffff;
       text-transform: uppercase;
       line-height: 1;
@@ -502,7 +565,7 @@
       border-color: var(--glass-highlight);
     }
 
-    /* Inspect Overlay (1:1 Native Edge Representation) */
+    /* Inspect Overlay (1:1 Native Edge) */
     #inspect-overlay {
       position: fixed;
       inset: 0;
@@ -711,8 +774,14 @@
   <div id="splash-screen">
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
-      <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v2.0.1</div>
+      <div class="splash-sub" id="splash-count">
+        <span>CURRENT TOTAL:</span>
+        <span class="splash-loader-dots" id="splash-dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span id="splash-count-num" style="display: none; margin-left: var(--fib-8);"></span>
+      </div>
+      <div class="splash-ver">v2.0.2</div>
     </div>
   </div>
 
@@ -737,7 +806,7 @@
 
   <main id="gallery-container"></main>
 
-  <!-- Full-Screen Intrinsic Aspect-Ratio Inspect Overlay -->
+  <!-- Full-Screen Intrinsic Inspect Overlay -->
   <div id="inspect-overlay">
     <img id="inspect-img" alt="Artwork Detail">
   </div>
@@ -1017,7 +1086,6 @@
 
     inspectOverlay.addEventListener('click', closeInspect);
 
-    // Tap outside buttons on the armed card canvas to dismiss
     sharedOverlay.addEventListener('click', (e) => {
       if (!e.target.closest('.btn-slot-action') && !e.target.closest('.slot-info-box')) {
         disarmAllSlots();
@@ -1167,11 +1235,18 @@
 
       if (!wallpapers || !wallpapers.length) {
         showToast('No wallpapers located.');
-        document.getElementById('splash-count').textContent = 'CURRENT TOTAL: 0';
+        document.getElementById('splash-dots').style.display = 'none';
+        const countNum = document.getElementById('splash-count-num');
+        countNum.textContent = '0';
+        countNum.style.display = 'inline';
         return;
       }
 
-      document.getElementById('splash-count').textContent = `CURRENT TOTAL: ${wallpapers.length.toLocaleString()}`;
+      // Transition splash pips to exact library count
+      document.getElementById('splash-dots').style.display = 'none';
+      const countNum = document.getElementById('splash-count-num');
+      countNum.textContent = wallpapers.length.toLocaleString();
+      countNum.style.display = 'inline';
 
       const container = document.getElementById('gallery-container');
       container.innerHTML = '';
@@ -1215,7 +1290,6 @@
         centerObserver.observe(slot);
       });
 
-      // Double-Tap and Single-Tap Listener
       container.addEventListener('click', (e) => {
         const slot = e.target.closest('.image-slot');
         if (!slot || e.target.closest('#shared-action-overlay')) return;
@@ -1547,6 +1621,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v2.0.1 -->
+  <!-- 4K WALLPAPERS v2.0.2 -->
 </body>
 </html>
