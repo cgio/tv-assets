@@ -156,7 +156,7 @@
       opacity: 0.85;
     }
 
-    /* Persistent Filter Indicator (Capsule/Stadium Geometry) */
+    /* Persistent Filter Indicator */
     #filter-banner {
       position: fixed;
       top: calc(var(--fib-13) + env(safe-area-inset-top));
@@ -278,7 +278,7 @@
       transition: border-color 0.21s ease;
     }
 
-    /* Barber-Luster Ambient Gallery Sweep */
+    /* Barber-Luster Sweep */
     .image-slot::before {
       content: '';
       position: absolute;
@@ -304,7 +304,7 @@
       100% { background-position: -90% 0; }
     }
 
-    /* Card Placeholder & Dancing Pips */
+    /* Card Placeholder & Pips */
     .slot-placeholder {
       position: absolute;
       inset: 0;
@@ -384,7 +384,7 @@
       filter: brightness(0.55);
     }
 
-    /* Single Reusable Modal */
+    /* Single Reusable Modal Overlay */
     #shared-action-overlay {
       position: absolute;
       inset: 0;
@@ -394,6 +394,7 @@
       z-index: 10;
       padding: var(--fib-8);
       pointer-events: auto;
+      cursor: pointer;
     }
 
     #shared-action-overlay.visible {
@@ -407,9 +408,10 @@
       justify-content: center;
       gap: var(--fib-13);
       max-width: 100%;
+      cursor: default;
     }
 
-    /* 4-Button Unified Row */
+    /* 4-Button Action Row */
     .action-btn-row {
       display: flex;
       align-items: center;
@@ -418,17 +420,23 @@
       max-width: 100%;
     }
 
+    /* Reversible Button Ordering */
+    body.hand-left .action-btn-row {
+      flex-direction: row-reverse;
+    }
+
     .btn-slot-action {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: var(--fib-5);
+      gap: var(--fib-3);
       background: var(--glass-bg);
       border: 1px solid var(--glass-highlight);
       border-radius: var(--fib-21);
-      padding: var(--fib-8) clamp(var(--fib-5), 1.5vw, var(--fib-13));
-      min-width: clamp(62px, 17vw, 84px);
+      padding: var(--fib-8) clamp(var(--fib-5), 1.8vw, var(--fib-13));
+      min-width: clamp(58px, 16vw, 76px);
+      min-height: var(--fib-55);
       backdrop-filter: blur(var(--fib-21));
       -webkit-backdrop-filter: blur(var(--fib-21));
       box-shadow: var(--glass-shadow);
@@ -442,26 +450,24 @@
     }
 
     .btn-slot-action .action-emoji {
-      font-size: 1.85rem;
-      line-height: 1;
+      font-size: clamp(1.35rem, 4.2vw, 1.65rem);
+      line-height: 1.1;
       display: inline-block;
       transition: transform 0.28s ease;
     }
 
-    /* Dynamic Diagonal Rotation for FULL Expand Icon */
-    body.hand-right .btn-slot-full .action-emoji {
-      transform: rotate(45deg);
-    }
+    /* Dynamic Slant Harmony */
+    body.hand-right .btn-slot-full .action-emoji  { transform: none; }
+    body.hand-left  .btn-slot-full .action-emoji  { transform: scaleX(-1); }
 
-    body.hand-left .btn-slot-full .action-emoji {
-      transform: rotate(-45deg);
-    }
+    body.hand-right .btn-slot-share .action-emoji { transform: scaleX(-1); }
+    body.hand-left  .btn-slot-share .action-emoji { transform: none; }
 
     .btn-slot-action .action-label {
       font-family: var(--font-body);
       font-weight: 700;
-      font-size: 0.9rem;
-      letter-spacing: var(--fib-2);
+      font-size: clamp(0.75rem, 2.2vw, 0.85rem);
+      letter-spacing: var(--fib-1);
       color: #ffffff;
       text-transform: uppercase;
       line-height: 1;
@@ -496,7 +502,7 @@
       border-color: var(--glass-highlight);
     }
 
-    /* Full-Screen Intrinsic Inspect Overlay (Zero Edge Distortion) */
+    /* Inspect Overlay (1:1 Native Edge Representation) */
     #inspect-overlay {
       position: fixed;
       inset: 0;
@@ -529,7 +535,7 @@
       pointer-events: none;
     }
 
-    /* Modal Backdrop for Search */
+    /* Search Modal Backdrop */
     #search-modal-backdrop {
       position: fixed;
       inset: 0;
@@ -706,7 +712,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v2.0.0</div>
+      <div class="splash-ver">v2.0.1</div>
     </div>
   </div>
 
@@ -753,7 +759,7 @@
           <span class="action-label">URL</span>
         </button>
         <button class="btn-slot-action btn-slot-full" id="modal-btn-full" aria-label="View Full Intrinsic Artwork">
-          <span class="action-emoji">↔️</span>
+          <span class="action-emoji">📏</span>
           <span class="action-label">FULL</span>
         </button>
       </div>
@@ -1011,7 +1017,13 @@
 
     inspectOverlay.addEventListener('click', closeInspect);
 
-    sharedOverlay.addEventListener('click', (e) => e.stopPropagation());
+    // Tap outside buttons on the armed card canvas to dismiss
+    sharedOverlay.addEventListener('click', (e) => {
+      if (!e.target.closest('.btn-slot-action') && !e.target.closest('.slot-info-box')) {
+        disarmAllSlots();
+      }
+    });
+
     modalDlBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       triggerDownload(armedIndex);
@@ -1203,6 +1215,7 @@
         centerObserver.observe(slot);
       });
 
+      // Double-Tap and Single-Tap Listener
       container.addEventListener('click', (e) => {
         const slot = e.target.closest('.image-slot');
         if (!slot || e.target.closest('#shared-action-overlay')) return;
@@ -1534,6 +1547,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v2.0.0 -->
+  <!-- 4K WALLPAPERS v2.0.1 -->
 </body>
 </html>
