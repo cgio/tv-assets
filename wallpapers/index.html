@@ -156,7 +156,7 @@
       opacity: 0.85;
     }
 
-    /* Persistent Filter Indicator (Pure Capsule/Stadium Geometry) */
+    /* Persistent Filter Indicator (Capsule/Stadium Geometry) */
     #filter-banner {
       position: fixed;
       top: calc(var(--fib-13) + env(safe-area-inset-top));
@@ -392,7 +392,7 @@
       align-items: center;
       justify-content: center;
       z-index: 10;
-      padding: var(--fib-13);
+      padding: var(--fib-8);
       pointer-events: auto;
     }
 
@@ -409,11 +409,13 @@
       max-width: 100%;
     }
 
+    /* 4-Button Unified Row */
     .action-btn-row {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--fib-13);
+      gap: var(--fib-8);
+      max-width: 100%;
     }
 
     .btn-slot-action {
@@ -421,12 +423,12 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: var(--fib-8);
+      gap: var(--fib-5);
       background: var(--glass-bg);
       border: 1px solid var(--glass-highlight);
       border-radius: var(--fib-21);
-      padding: var(--fib-13) clamp(var(--fib-8), 2.5vw, var(--fib-21));
-      min-width: clamp(72px, 20vw, var(--fib-89));
+      padding: var(--fib-8) clamp(var(--fib-5), 1.5vw, var(--fib-13));
+      min-width: clamp(62px, 17vw, 84px);
       backdrop-filter: blur(var(--fib-21));
       -webkit-backdrop-filter: blur(var(--fib-21));
       box-shadow: var(--glass-shadow);
@@ -440,15 +442,25 @@
     }
 
     .btn-slot-action .action-emoji {
-      font-size: 2rem;
+      font-size: 1.85rem;
       line-height: 1;
-      display: block;
+      display: inline-block;
+      transition: transform 0.28s ease;
+    }
+
+    /* Dynamic Diagonal Rotation for FULL Expand Icon */
+    body.hand-right .btn-slot-full .action-emoji {
+      transform: rotate(45deg);
+    }
+
+    body.hand-left .btn-slot-full .action-emoji {
+      transform: rotate(-45deg);
     }
 
     .btn-slot-action .action-label {
       font-family: var(--font-body);
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       letter-spacing: var(--fib-2);
       color: #ffffff;
       text-transform: uppercase;
@@ -484,7 +496,7 @@
       border-color: var(--glass-highlight);
     }
 
-    /* Dedicated Double-Tap Intrinsic Inspect Overlay */
+    /* Full-Screen Intrinsic Inspect Overlay (Zero Edge Distortion) */
     #inspect-overlay {
       position: fixed;
       inset: 0;
@@ -495,7 +507,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: var(--fib-13);
+      padding: 0;
       cursor: zoom-out;
       opacity: 0;
       transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
@@ -512,8 +524,8 @@
       width: auto;
       height: auto;
       object-fit: contain;
-      box-shadow: 0 var(--fib-21) var(--fib-55) rgba(0, 0, 0, 0.9);
-      border-radius: var(--fib-5);
+      border-radius: 0 !important;
+      box-shadow: none !important;
       pointer-events: none;
     }
 
@@ -694,7 +706,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.9.9</div>
+      <div class="splash-ver">v2.0.0</div>
     </div>
   </div>
 
@@ -724,6 +736,7 @@
     <img id="inspect-img" alt="Artwork Detail">
   </div>
 
+  <!-- 4-Button Action Overlay -->
   <div id="shared-action-overlay">
     <div class="slot-action-card">
       <div class="action-btn-row">
@@ -738,6 +751,10 @@
         <button class="btn-slot-action btn-slot-url" id="modal-btn-url" aria-label="Copy Direct Image URL">
           <span class="action-emoji">🌐</span>
           <span class="action-label">URL</span>
+        </button>
+        <button class="btn-slot-action btn-slot-full" id="modal-btn-full" aria-label="View Full Intrinsic Artwork">
+          <span class="action-emoji">↔️</span>
+          <span class="action-label">FULL</span>
         </button>
       </div>
       <div class="slot-info-box" id="modal-info-box" title="Click to highlight text"></div>
@@ -774,7 +791,6 @@
     let lastRandomTimestamp = 0;
     const SLOTS = [];
 
-    // Double-Tap Inspect State
     let lastTapTime = 0;
     let lastTapIndex = null;
     let singleTapTimer = null;
@@ -785,6 +801,7 @@
     const modalDlBtn = document.getElementById('modal-btn-download');
     const modalShareBtn = document.getElementById('modal-btn-share');
     const modalUrlBtn = document.getElementById('modal-btn-url');
+    const modalFullBtn = document.getElementById('modal-btn-full');
     const modalInfoBox = document.getElementById('modal-info-box');
     const filterBanner = document.getElementById('filter-banner');
     const filterTerm = document.getElementById('filter-term');
@@ -968,14 +985,15 @@
       modalDlBtn.style.pointerEvents = 'none';
       modalShareBtn.style.pointerEvents = 'none';
       modalUrlBtn.style.pointerEvents = 'none';
+      modalFullBtn.style.pointerEvents = 'none';
       armLockTimer = setTimeout(() => {
         modalDlBtn.style.pointerEvents = 'auto';
         modalShareBtn.style.pointerEvents = 'auto';
         modalUrlBtn.style.pointerEvents = 'auto';
+        modalFullBtn.style.pointerEvents = 'auto';
       }, 200);
     }
 
-    // Intrinsic Aspect-Ratio Inspect Controller
     function openInspect(index) {
       disarmAllSlots();
       const file = wallpapers[index];
@@ -1015,6 +1033,12 @@
         showToast('Clipboard access denied');
       });
       disarmAllSlots();
+    });
+    modalFullBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = armedIndex;
+      disarmAllSlots();
+      openInspect(idx);
     });
     modalInfoBox.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1179,7 +1203,6 @@
         centerObserver.observe(slot);
       });
 
-      // Unified Single/Double Tap Controller
       container.addEventListener('click', (e) => {
         const slot = e.target.closest('.image-slot');
         if (!slot || e.target.closest('#shared-action-overlay')) return;
@@ -1187,13 +1210,11 @@
         const now = Date.now();
 
         if (lastTapIndex === idx && (now - lastTapTime) < 320) {
-          // Double-tap detected: cancel arming timer, open full inspect
           clearTimeout(singleTapTimer);
           lastTapTime = 0;
           lastTapIndex = null;
           openInspect(idx);
         } else {
-          // First tap: buffer slightly to disambiguate single vs double tap
           lastTapTime = now;
           lastTapIndex = idx;
           clearTimeout(singleTapTimer);
@@ -1513,6 +1534,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.9.9 -->
+  <!-- 4K WALLPAPERS v2.0.0 -->
 </body>
 </html>
