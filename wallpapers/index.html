@@ -32,7 +32,7 @@
 
       --nav-btn-size: var(--fib-55); /* 55px */
       --nav-pad: var(--fib-8);        /* 8px */
-      --nav-dock-height: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
+      --nav-dock-height: calc((var(--nav-btn-size) * 2) + var(--fib-8) + (var(--nav-pad) * 2) + 2px);
       --info-dock-gap: var(--fib-13);
 
       --glass-bg: rgba(18, 18, 22, 0.78);
@@ -266,7 +266,7 @@
       width: 100%;
       aspect-ratio: 16 / 9;
       background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 70%), #131419;
-      border-radius: var(--fib-8);
+      border-radius: var(--fib-13);
       border: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
@@ -278,17 +278,91 @@
       transition: border-color 0.21s ease;
     }
 
-    .slot-num-tag {
+    /* Barber-Luster Ambient Gallery Sweep */
+    .image-slot::before {
+      content: '';
       position: absolute;
-      font-family: var(--font-body);
-      font-size: 1.25rem;
-      letter-spacing: var(--fib-2);
-      color: rgba(255, 255, 255, 0.22);
+      inset: 0;
+      background: linear-gradient(
+        115deg,
+        transparent 0%,
+        transparent 35%,
+        rgba(255, 255, 255, 0.015) 45%,
+        rgba(255, 224, 102, 0.035) 50%,
+        rgba(255, 255, 255, 0.015) 55%,
+        transparent 65%,
+        transparent 100%
+      );
+      background-size: 250% 100%;
+      animation: galleryLuster 3.8s ease-in-out infinite;
       pointer-events: none;
       z-index: 1;
     }
 
-    /* Suppresses browser alt-text leakage across Gecko / WebKit */
+    @keyframes galleryLuster {
+      0% { background-position: 190% 0; }
+      100% { background-position: -90% 0; }
+    }
+
+    /* Card Placeholder & Dancing Pips */
+    .slot-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--fib-8);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .slot-num-tag {
+      font-family: var(--font-body);
+      font-size: 1.25rem;
+      letter-spacing: var(--fib-2);
+      color: rgba(255, 255, 255, 0.22);
+      line-height: 1;
+    }
+
+    .slot-loader-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--fib-5);
+      height: var(--fib-8);
+    }
+
+    .slot-loader-dots span {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.18);
+      animation: dotJig 1.618s ease-in-out infinite;
+    }
+
+    .slot-loader-dots span:nth-child(1) {
+      animation-delay: 0s;
+    }
+    .slot-loader-dots span:nth-child(2) {
+      animation-delay: 0.236s;
+    }
+    .slot-loader-dots span:nth-child(3) {
+      animation-delay: 0.382s;
+    }
+
+    @keyframes dotJig {
+      0%, 100% {
+        transform: translateY(0);
+        background-color: rgba(255, 255, 255, 0.18);
+      }
+      50% {
+        transform: translateY(-4px);
+        background-color: rgba(255, 224, 102, 0.42);
+      }
+    }
+
+    /* 4K Image Surface (Silenced Alt Painting) */
     .image-slot img {
       position: relative;
       z-index: 2;
@@ -300,7 +374,7 @@
       font-size: 0 !important;
       line-height: 0 !important;
       pointer-events: none;
-      transition: opacity 0.28s ease-in-out;
+      transition: opacity 0.34s ease-in-out;
     }
 
     .image-slot img.loaded {
@@ -498,13 +572,14 @@
       background: rgba(255, 255, 255, 0.15);
     }
 
-    /* Fixed Navigation Dock */
+    /* --- Universal Navigation Dock: 2-Button Stack Default across All Devices --- */
     #nav-dock {
       position: fixed;
       bottom: calc(var(--fib-21) + env(safe-area-inset-bottom));
       z-index: 950;
-      display: flex;
-      align-items: center;
+      display: grid;
+      grid-template-rows: repeat(2, var(--nav-btn-size));
+      grid-template-columns: repeat(3, var(--nav-btn-size));
       gap: var(--fib-8);
       padding: var(--nav-pad);
       background: var(--glass-bg);
@@ -515,39 +590,57 @@
       box-shadow: var(--glass-shadow);
       touch-action: pan-y;
       cursor: grab;
-      transition: left 0.34s cubic-bezier(0.16, 1, 0.3, 1), right 0.34s cubic-bezier(0.16, 1, 0.3, 1), width 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      transition: left 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+                  right 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+                  width 0.34s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     #nav-dock:active {
       cursor: grabbing;
     }
 
+    /* Right-Docked Grid Layout:
+       Row 1: [ 🔍 ] [ 🎲 ] [ 👉🏼/👈🏼 ]
+       Row 2: [ ⬅️ ] [ ➡️ ] [ ✅ ]
+       Collapsed view shows only Column 3 [ 👉🏼/👈🏼 ] top, [ ✅ ] bottom */
     body.hand-right #nav-dock {
       right: var(--fib-21);
       left: auto;
+      justify-content: end;
     }
+    body.hand-right #btn-search { grid-column: 1; grid-row: 1; }
+    body.hand-right #btn-random { grid-column: 2; grid-row: 1; }
+    body.hand-right #btn-hand   { grid-column: 3; grid-row: 1; }
+    body.hand-right #btn-prev   { grid-column: 1; grid-row: 2; }
+    body.hand-right #btn-next   { grid-column: 2; grid-row: 2; }
+    body.hand-right #btn-action { grid-column: 3; grid-row: 2; }
 
+    /* Left-Docked Grid Layout:
+       Row 1: [ 👈🏼/👉🏼 ] [ 🎲 ] [ 🔎 ]
+       Row 2: [ ✅ ] [ ⬅️ ] [ ➡️ ]
+       Collapsed view shows only Column 1 [ 👈🏼/👉🏼 ] top, [ ✅ ] bottom */
     body.hand-left #nav-dock {
       left: var(--fib-21);
       right: auto;
+      justify-content: start;
+    }
+    body.hand-left #btn-hand   { grid-column: 1; grid-row: 1; }
+    body.hand-left #btn-random { grid-column: 2; grid-row: 1; }
+    body.hand-left #btn-search { grid-column: 3; grid-row: 1; }
+    body.hand-left #btn-action { grid-column: 1; grid-row: 2; }
+    body.hand-left #btn-prev   { grid-column: 2; grid-row: 2; }
+    body.hand-left #btn-next   { grid-column: 3; grid-row: 2; }
+
+    /* Collapsed: Exactly 1 column width (2 buttons stacked vertically) on ALL devices */
+    body.dock-collapsed #nav-dock {
+      width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
     }
 
-    /* Desktop Ordering (6 buttons) */
-    /* Right: [ 👈🏼 ] [ 🔍 ] [ 🎲 ] [ ✅ ] [ ⬅️ ] [ ➡️ ] */
-    body.hand-right #btn-hand   { order: 1; }
-    body.hand-right #btn-search { order: 2; }
-    body.hand-right #btn-random { order: 3; }
-    body.hand-right #btn-action { order: 4; }
-    body.hand-right #btn-prev   { order: 5; }
-    body.hand-right #btn-next   { order: 6; }
-
-    /* Left: [ ⬅️ ] [ ➡️ ] [ ✅ ] [ 🎲 ] [ 🔎 ] [ 👉🏼 ] */
-    body.hand-left #btn-prev   { order: 1; }
-    body.hand-left #btn-next   { order: 2; }
-    body.hand-left #btn-action { order: 3; }
-    body.hand-left #btn-random { order: 4; }
-    body.hand-left #btn-search { order: 5; }
-    body.hand-left #btn-hand   { order: 6; }
+    /* Expanded: Exactly 3 columns width (3x2 grid) on ALL devices */
+    body:not(.dock-collapsed) #nav-dock {
+      width: calc((var(--nav-btn-size) * 3) + (var(--fib-8) * 2) + (var(--nav-pad) * 2) + 2px);
+    }
 
     .nav-btn {
       width: var(--nav-btn-size);
@@ -574,44 +667,6 @@
       display: inline-block;
       transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-
-    /* Responsive Mobile (<= 540px, 3x2 Grid) */
-    @media (max-width: 540px) {
-      :root {
-        --nav-dock-height: calc((var(--nav-btn-size) * 2) + var(--fib-8) + (var(--nav-pad) * 2) + 2px);
-      }
-
-      #nav-dock {
-        display: grid;
-        grid-template-rows: repeat(2, var(--nav-btn-size));
-        grid-template-columns: repeat(3, var(--nav-btn-size));
-        gap: var(--fib-8);
-        overflow: hidden;
-      }
-
-      body.hand-right #nav-dock { justify-content: end; }
-      body.hand-right #btn-search { grid-column: 1; grid-row: 1; }
-      body.hand-right #btn-random { grid-column: 2; grid-row: 1; }
-      body.hand-right #btn-hand   { grid-column: 3; grid-row: 1; }
-      body.hand-right #btn-prev   { grid-column: 1; grid-row: 2; }
-      body.hand-right #btn-next   { grid-column: 2; grid-row: 2; }
-      body.hand-right #btn-action { grid-column: 3; grid-row: 2; }
-
-      body.hand-left #nav-dock { justify-content: start; }
-      body.hand-left #btn-hand   { grid-column: 1; grid-row: 1; }
-      body.hand-left #btn-random { grid-column: 2; grid-row: 1; }
-      body.hand-left #btn-search { grid-column: 3; grid-row: 1; }
-      body.hand-left #btn-action { grid-column: 1; grid-row: 2; }
-      body.hand-left #btn-prev   { grid-column: 2; grid-row: 2; }
-      body.hand-left #btn-next   { grid-column: 3; grid-row: 2; }
-
-      body.dock-collapsed #nav-dock {
-        width: calc(var(--nav-btn-size) + (var(--nav-pad) * 2) + 2px);
-      }
-      body:not(.dock-collapsed) #nav-dock {
-        width: calc((var(--nav-btn-size) * 3) + (var(--fib-8) * 2) + (var(--nav-pad) * 2) + 2px);
-      }
-    }
   </style>
 </head>
 <body class="hand-right dock-collapsed">
@@ -622,7 +677,7 @@
     <div class="splash-box">
       <div class="splash-title"><span class="splash-4k">4K</span> WALLPAPERS</div>
       <div class="splash-sub" id="splash-count">CURRENT TOTAL: ...</div>
-      <div class="splash-ver">v1.9.7</div>
+      <div class="splash-ver">v1.9.8</div>
     </div>
   </div>
 
@@ -1048,16 +1103,28 @@
 
         const cleanAlt = file.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
 
+        // Card Placeholder with Auction-House Dancing Pips
+        const placeholder = document.createElement('div');
+        placeholder.className = 'slot-placeholder';
+
         const numTag = document.createElement('span');
         numTag.className = 'slot-num-tag';
         numTag.textContent = `#${(index + 1).toLocaleString()}`;
+
+        const dotsContainer = document.createElement('div');
+        dotsContainer.className = 'slot-loader-dots';
+        dotsContainer.setAttribute('aria-hidden', 'true');
+        dotsContainer.innerHTML = '<span></span><span></span><span></span>';
+
+        placeholder.appendChild(numTag);
+        placeholder.appendChild(dotsContainer);
 
         const img = document.createElement('img');
         img.alt = cleanAlt;
         img.decoding = 'async';
         slot._img = img;
 
-        slot.appendChild(numTag);
+        slot.appendChild(placeholder);
         slot.appendChild(img);
         container.appendChild(slot);
         SLOTS.push(slot);
@@ -1177,14 +1244,10 @@
 
       btnSearch.textContent = isLeftHanded ? '🔎' : '🔍';
 
-      if (window.innerWidth <= 540) {
-        if (isLeftHanded) {
-          btnHand.textContent = isCollapsed ? '👉🏼' : '👈🏼';
-        } else {
-          btnHand.textContent = isCollapsed ? '👈🏼' : '👉🏼';
-        }
+      if (isLeftHanded) {
+        btnHand.textContent = isCollapsed ? '👉🏼' : '👈🏼';
       } else {
-        btnHand.textContent = isLeftHanded ? '👉🏼' : '👈🏼';
+        btnHand.textContent = isCollapsed ? '👈🏼' : '👉🏼';
       }
     }
 
@@ -1198,13 +1261,9 @@
     }
 
     document.getElementById('btn-hand').addEventListener('click', () => {
-      if (window.innerWidth <= 540) {
-        isCollapsed = !isCollapsed;
-        document.body.classList.toggle('dock-collapsed', isCollapsed);
-        updateControlsOrientation();
-      } else {
-        setHandMode(!isLeftHanded);
-      }
+      isCollapsed = !isCollapsed;
+      document.body.classList.toggle('dock-collapsed', isCollapsed);
+      updateControlsOrientation();
     });
 
     window.addEventListener('resize', updateControlsOrientation);
@@ -1387,6 +1446,6 @@
 
     window.addEventListener('DOMContentLoaded', loadWallpapers);
   </script>
-  <!-- 4K WALLPAPERS v1.9.7 -->
+  <!-- 4K WALLPAPERS v1.9.8 -->
 </body>
 </html>
