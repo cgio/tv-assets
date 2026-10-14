@@ -14,5 +14,8 @@ pm enable com.amazon.tv.arc
 pm enable com.amazon.tv.intentsupport
 pm enable com.amazon.ftvads.deeplinking
 pm enable com.amazon.media.recommendations
+pm enable com.amazon.ceviche
+pm enable com.amazon.tv.launcher
+pm enable amazon.speech.davs.davcservice
 
 echo "[*] Baseline restored cleanly."
