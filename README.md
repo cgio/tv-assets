@@ -51,6 +51,11 @@ For KFTV Lite:
 For Appstore:
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/apps_generic.png"`
 
+For TizenTube Cobalt:
+* `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/youtube.png"`
+...OR...
+* `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/tizentube_on_android_tv.png"`
+
 For TV Bro:
 * `adb shell input text "https://raw.githubusercontent.com/cgio/tv-assets/main/icons/projectivy-1.1.9/internet_generic.png"`
 
